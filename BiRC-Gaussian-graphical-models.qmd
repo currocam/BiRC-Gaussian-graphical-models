@@ -1,0 +1,37 @@
+---
+title: "Gaussian graphical models"
+bibliography: references.bib
+---
+
+# Background
+
+The recent advances in microbial amplicon and metagenomic sequencing produces large collections of co-occurence data suitable for quantitative analysis [@badri2020]. Although limited by nature, microbial taxa associations *in situ* can not usually be assessed by observing interactions as in macro-ecosystems [@guseva2022]. Therefore, methods to extract valuable information and its implications are an active and controversial topic of research [@blanchet2020].
+
+Microbial networks are temporary or spatial snapshots of ecosystems, where taxonomic units are displayed as nodes (but also environmental variables), and significant associations as undirected edges [@röttjers2018]. This is an ambiguous definition that includes different methods that seek to characterize fundamental properties and mechanisms of microbial ecosystems [@lutz2022].
+
+In this work we focused on one of the most common microbial networks, called undirected Gaussian graphical models[^1].
+
+[^1]: A graphical model is a probabilistic model for which a graph expresses the conditional dependence structure between random variables.
+
+## Gaussian graphical models
+
+We have adapted the formal definition of @uhler. Let $G = (V, E)$ be an undirected graph with nodes $V=\{1, \dots, p\}$ and edges $E \subset \{(i, j) \in V\times V : i<j\}$. We say a random vector $X\in\mathbb R^p$ follows a Gaussian graphical model (GMM) respect to the graph $G$ if it is distributed as $\mathcal N_p(0, \Omega ^{-1}$), whereas the precision matrix, $\Omega$, is a positive definite matrix of order $p$ such that $\Omega_{ij} = 0$ implies $(i, j) \notin E$.
+
+The precision matrix is defined to be the inverse of the covariance matrix, $\Omega :=\Sigma^{-1}$. Notably, the absence of the edge $(i, j)$, as well as $\Omega_{ij}=0$, implies conditional independence between $X_i$ and $X_j$ given the all other variables.
+
+## Compositional data
+
+Let's consider the raw microbial abundance data , $W \in \mathbb N_0^{n\times p}$, where $W_i^{(j)}$ corresponds to the number of reads assigned to the $i$-taxa in the $j$-sample. The first challenge of inferring GGM from microbial data is the fact that (1) abundances are discrete counts and (2) is highly compositional due to unequal depth and sampling. For this reason, microbial abundances are often normalized by the total of sum of reads per sample.
+
+@kurtz2015 proposed to use the centered log-ratio of relative abundances of the pseudo-counts (@eq-clr). However, more complex transformation that takes into account the fact that counts are zero inflated and more realistic models of the zeros have been proposed by @ha2020 .
+
+$$
+z = \text{clr}(x) = [\frac{w_1}{g(x)}, \frac{w_2}{g(x)}, \dots] \\ 
+g(x) = [\prod _{i=1}^px_i]^{1/p}
+$$ {#eq-clr}
+
+## Inferring sparse graph models
+
+Although it is not strictly necessary, most of research have focused on the problem of estimating sparse graphs, because can be treated as convex optimization problems and applicable in the case $p>n$. Among the most commonly used methods there is the Meinshausen and Bühlmann (MB), and the so-called GLASSO [@friedman2008;@meinshausen2006].
+
+The MB is a node-wise algorithm that infers the graph $G$ by solving $p$ regularized Lasso regressions, whereas Glasso is a penalized maximum likelihood method that infers the entire graph at once.
