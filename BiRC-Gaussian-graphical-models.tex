@@ -1,0 +1,693 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+% Make \paragraph and \subparagraph free-standing
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newlength{\cslentryspacingunit} % times entry-spacing
+\setlength{\cslentryspacingunit}{\parskip}
+\newenvironment{CSLReferences}[2] % #1 hanging-ident, #2 entry spacing
+ {% don't indent paragraphs
+  \setlength{\parindent}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+  \let\oldpar\par
+  \def\par{\hangindent=\cslhangindent\oldpar}
+  \fi
+  % set entry spacing
+  \setlength{\parskip}{#2\cslentryspacingunit}
+ }%
+ {}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+
+\KOMAoption{captions}{tableheading}
+\makeatletter
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\makeatletter
+\@ifpackageloaded{tcolorbox}{}{\usepackage[skins,breakable]{tcolorbox}}
+\makeatother
+\makeatletter
+\@ifundefined{shadecolor}{\definecolor{shadecolor}{rgb}{.97, .97, .97}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\makeatother
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Gaussian graphical models},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Gaussian graphical models}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[sharp corners, frame hidden, boxrule=0pt, enhanced, borderline west={3pt}{0pt}{shadecolor}, breakable, interior hidden]}{\end{tcolorbox}}\fi
+
+\hypertarget{background}{%
+\section{Background}\label{background}}
+
+The recent advances in microbial amplicon and metagenomic sequencing
+produces large collections of co-occurence data suitable for
+quantitative analysis (Badri et al. 2020). Although limited by nature,
+microbial taxa associations \emph{in situ} can not usually be assessed
+by observing interactions as in macro-ecosystems (Guseva et al. 2022).
+Therefore, methods to extract valuable information and their
+interpretation are an active and controversial topic of research
+(Blanchet, Cazelles, and Gravel 2020).
+
+Microbial networks are temporary or spatial snapshots of ecosystems,
+where taxonomic units are displayed as nodes (but also environmental
+variables), and significant associations as undirected edges (Röttjers
+and Faust 2018). This is an ambiguous definition that includes different
+methods that seek to characterize fundamental properties and mechanisms
+of microbial ecosystems (Lutz et al. 2022).
+
+The need to estimate properties of networks to arrive at meaninful
+biogical insights has been previously pointed out (Röttjers and Faust
+2018; Abu-Mostafa, Magdon-Ismail, and Lin 2012). In this work we use one
+of the most common microbial networks, called undirected Gaussian
+graphical models\footnote{A graphical model is a probabilistic model for
+  which a graph expresses the conditional dependence structure between
+  random variables.}. Specifically, we will focus on the analysis of
+uncertainty measurement and statistical robustness of two commonly used
+metrics in the field of ecological microbiology (Matchado et al. 2021;
+Vries et al. 2018; Zamkovaya et al. 2021; Guseva et al. 2022).
+
+\hypertarget{gaussian-graphical-models}{%
+\subsection{Gaussian graphical models}\label{gaussian-graphical-models}}
+
+Here we adapt the classical definition of Uhler (n.d.).
+
+Let \(G = (V, E)\) be an undirected graph with nodes
+\(V=\{1, \dots, p\}\) and edges
+\(E \subset \{(i, j) \in V\times V : i<j\}\). We say a random vector
+\(X\in\mathbb R^p\) follows a Gaussian graphical model (GMM) respect to
+the graph \(G\) if it is distributed as
+\(\mathcal N_p(0, \Omega ^{-1}\)), whereas the precision matrix,
+\(\Omega\), is a positive definite matrix of order \(p\) such that
+\(\Omega_{ij} = 0\) implies \((i, j) \notin E\).
+
+The precision matrix is defined to be the inverse of the covariance
+matrix, \(\Omega :=\Sigma^{-1}\). Notably, the absence of the edge
+\((i, j)\), as well as \(\Omega_{ij}=0\), implies conditional
+independence between \(X_i\) and \(X_j\) given the all other variables.
+
+\hypertarget{network-metrics}{%
+\subsection{Network metrics}\label{network-metrics}}
+
+Metrics such as hub score\footnote{The hub scores are defined for
+  undirected networks as the principal eigenvector of \(A^\top A\),
+  where \(A\) is the adjacency matrix Kleinberg (1998).}, betweenness
+centrality\footnote{The betweennes centrality of a node is roughly
+  defined by the number of shortest paths going through it. Formally,
+  \(\text{betweennes}(v) = \sum_{i\ne j, i\ne v, j\ne v} \frac{g_{ivj}}{g_{ij}}\),where
+  \(g_{ij}\) is the number of shortest paths between \(i\) and \(j\) and
+  \(g_{i, v, j}\) is the number of those shortest path which pass
+  through node \(v\) (Brandes 2001).}, closeness centrality\footnote{The
+  closeness centrality of a node is the inverse of the sum of distances
+  to all other nodes in the graph. Formally,
+  \(\text{closeness}(v) = \frac{1}{\sum_{i\ne v}d_{vi}}\).
+  Alternatively, the harmonic centrality is more robust in the context
+  of disconnected graphs (Freeman 1978).}, and degree
+centrality\footnote{The degree centrality of a node is simply the number
+  of edges it has (Hansen, Shneiderman, and Smith 2011).} describes
+properties of the \emph{nodes}. Whereas these metrics can be used to
+identity key taxa in interaction networks, they lack from a strong
+conceptual justification of why they could be used to identity keystone
+\emph{taxa} in co-occurrence networks. Despite this, they are still
+widely used for this purpose (Röttjers and Faust 2018; Guseva et al.
+2022).
+
+In contrast, other frequent metrics describe the entire graph. For
+example, the modularity\footnote{Formally,
+  \(Q = \frac{1}{2m}\sum_{ij}\left( A_{ij} - \gamma \frac{k_ik_j}{2m}\right )\mathbb1_{c_i = c_j}\),
+  where \(m\) is the number of edges, \(A\) is the adjency matrix,
+  \(k_x\) is the degree of the \(x\) node and \(c_x\) the cluster of the
+  \(x\) node} of a graph and a given partition describes how separated
+are the different node clusters. Usually, that partition is computed so
+it maximizes the modularity greedy optimization algorithm (Clauset,
+Newman, and Moore 2004).
+
+\hypertarget{compositional-data}{%
+\subsection{Compositional data}\label{compositional-data}}
+
+Microbial abundance data is clearly not normal, as abundance are
+discrete counts. Therefore, we need some kind of transformation. Let's
+consider the raw microbial abundance data ,
+\(W \in \mathbb N_0^{n\times p}\), where \(W_i^{(j)}\) corresponds to
+the number of reads assigned to the \(i\)-taxa in the \(j\)-sample.
+
+The first challenge of inferring GGM from microbial data is that it is
+highly compositional due to unequal depth and sampling. For this reason,
+microbial abundances are often normalized by the total of sum of reads
+per sample (Equation~\ref{eq-relative}).
+
+\begin{equation}\protect\hypertarget{eq-relative}{}{
+m^{(j)} = \sum_{a=1}^p W_a^{(j)}\\
+X_i^{(j)}  = \frac {W_i^{(j)}}{
+m^{(j)}}
+}\label{eq-relative}\end{equation}
+
+Kurtz et al. (2015) proposed to use the centered log-ratio of relative
+abundances (Equation~\ref{eq-clr}). To avoid numerical problems, they
+use \textbf{pseudo-counts}.
+
+\begin{equation}\protect\hypertarget{eq-clr}{}{
+Z^{(j)} = \text{clr}(X^{(j)}) = [\frac{1+W_1^{(j)}}{\prod _{a=1}^p (1+W_a^{(j)}) ]^{1/p}}, \frac{1+W_2^{(j)}}{\prod _{a=1}^p (1+W_a^{(j)}) ]^{1/p}}, \dots]
+}\label{eq-clr}\end{equation}
+
+The intuition behind this transformation is that, because
+\(\log{\frac {X_i}{X_j}} = \log{\frac {X_i/m}{X_j/m}} = \log{\frac {W_i}{W_j}}\),
+the statistical inference done with the log ratios of compositions are
+equivalent to the one done with the log ratio of unobserved absolute
+abundances. However, more complex transformation that takes into account
+the fact that counts are zero inflated and this transformation have been
+criticized in the context of network inferring by Ha et al. (2020) .
+
+\hypertarget{inferring-sparse-graph-models}{%
+\subsection{Inferring sparse graph
+models}\label{inferring-sparse-graph-models}}
+
+Although it is not strictly necessary, most of research have focused on
+the problem of estimating sparse graphs, because can be treated as
+convex optimization problems and applicable in the case \(p>n\). We will
+cover briefly the four main approaches, in the context of both
+frequentist and bayesian frameworks.
+
+\hypertarget{meinshausen-and-buxfchlmann-method}{%
+\subsection{Meinshausen and Bühlmann
+method}\label{meinshausen-and-buxfchlmann-method}}
+
+Meinshausen and Bühlmann (2006) where the first in imposing a \(L_1\)
+penalty to the estimation of the precision matrix \(\Omega\) as a proxy
+of the underlaying graph. The Meinshausen and Bühlmann method is
+\emph{node-wise} in the sense that solves the problem by finding edges
+node by node. They proposed that estimating the graph could be done by
+fitting \(p\) Lasso regressions (Equation~\ref{eq-lasso}). Then, they
+include the edge \((i, j)\) in the graph if either
+\(\hat \beta^{i, \lambda}_j \ne0\) or
+\(\hat \beta^{j, \lambda}_i \ne0\). Alternatively, you can also include
+an edge only when both coefficients are non-zero.
+
+\begin{equation}\protect\hypertarget{eq-lasso}{}{
+\hat \beta^{i, \lambda} = \arg \min_{\beta \in \mathbb R^{p-1}} (\frac 1 n ||Z^i-Z^{\neg i}\beta||_2 + \lambda||\beta||_1) 
+}\label{eq-lasso}\end{equation}
+
+\hypertarget{glasso-method}{%
+\subsection{Glasso method}\label{glasso-method}}
+
+Friedman, Hastie, and Tibshirani (2008) proposed a method that infers
+the entire graph by minimizing a \emph{convex} penalized maximum
+likelihood problem (Equation~\ref{eq-glasso}). Notice we denote the
+space of semi positive definite matrix as \(M^+\).
+
+\begin{equation}\protect\hypertarget{eq-glasso}{}{
+\hat \Omega = \arg \min_{\Omega \in M^+} (-\log\det(\Omega) + \text{tr}(\Omega\hat \Sigma)) + \lambda ||\Omega||_1
+}\label{eq-glasso}\end{equation}
+
+Both the Meinshausen and Bühlmann and Glasso are efficient and well
+known methods. However, we still need to select a proper \(\lambda\).
+Because we don't know the sparsity of the graph \emph{a priori}, there
+are different model-selection methods (expanded in the next section).
+
+\hypertarget{bayesian-glasso}{%
+\subsubsection{\texorpdfstring{\textbf{Bayesian
+GLASSO}}{Bayesian GLASSO}}\label{bayesian-glasso}}
+
+Wang (2012) introduced a bayesian version of the GLASSO estimator of the
+matrix (Equation~\ref{eq-bayes-glasso}). They assigned a double
+exponential prior to the elements in the off diagonal and an exponential
+and an exponential prior to the elements in the diagonal. The value of
+\(\lambda\) can either be the objective of some kind of model selection
+method or included in the model with an appropriate prior (Jongerling,
+Epskamp, and Williams 2023).
+
+\begin{equation}\protect\hypertarget{eq-bayes-glasso}{}{
+\begin{aligned}
+Z \sim \mathcal N(0, \Omega^{-1})\\
+P(\Omega | \lambda) \propto \prod_{i<j} \left \{ \text{DE}(w_{ij}|\lambda)\right \} \prod_{i=1}^p \left \{ \text{Exp}(w_{ii}|\frac \lambda 2)\right \} \mathbb 1 _{\Omega \in M^+}
+\end{aligned}
+}\label{eq-bayes-glasso}\end{equation}
+
+There are several adaptations of this basic setting in the literature
+(Richard Li, McCormick, and Clark 2019; Li, Craig, and Bhadra, n.d.;
+Piironen and Vehtari 2017). All of them can be computed efficiently and
+are relatively easy to converge. It may also be easier to have an
+intuition about the priors of the model.
+
+However, they all have the same problem: the resulting precision matrix
+is not sparse. As a result, in order to infer the underlying network
+(which is our ultimate goal), these methods require a \emph{post hoc}
+heuristic whether to include or exclude an edge. For example,
+Jongerling, Epskamp, and Williams (2023) set all off-diagonal elements
+to be exactly zero if the 95\% credibility interval containst the zero
+value.
+
+In my opinion, this decision-rule makes more difficult to estimate the
+uncertainty of all network metrics in a transparent way.
+(\textbf{jongerling202?}) explored method to overcome the fact that
+applying the decision rule when estimating the posteriors a centrality
+metrics requires to know the whole posterior distribution
+\emph{beforehand}.
+
+\hypertarget{sparse-bayesian-ggm-using-g-wishart-priors}{%
+\subsection{Sparse Bayesian GGM using G-Wishart
+priors}\label{sparse-bayesian-ggm-using-g-wishart-priors}}
+
+The alternative to using an heuristic like the previous one is to use
+estimate the \emph{join posterior distribution} of the precision matrix
+and the graph, \(P(G, \Omega|Z)\), with appropriate priors
+(Equation~\ref{eq-join-post}).
+
+\begin{equation}\protect\hypertarget{eq-join-post}{}{
+P(G, \Omega|Z) \propto P(Z|G, \Omega) P(\Omega|G)P(G)
+}\label{eq-join-post}\end{equation}
+
+The likelihood of the data given the precision matrix and graph is given
+by (A. Mohammadi and Wit 2015).
+
+\begin{equation}\protect\hypertarget{eq-likelihood}{}{
+P(Z|G, \Omega) \propto |\Omega|^{n/2}\exp\left \{ -\frac 1 2 \text{tr}(\Omega Z^\top Z) \right\}
+}\label{eq-likelihood}\end{equation}
+
+Many priors have been proposed for the graph structure (A. Mohammadi and
+Wit 2015; Carvalho and Scott 2009; Jones et al. 2005). The one
+implemented in the BDgraph library consists in a Bernoulli prior on each
+link inclusion (R. Mohammadi and Wit 2019). Prior knowledge can me
+included by assigning meaningful probabilities to different edges.
+Otherwise, the prior probability depends on a \(\theta \in (0, 1)\)
+parameter that express our prior belief in the sparsity of the graph.
+Notice that, if \(\theta = 0.5\), the distribution corresponds to the
+uniform distribution over the whole graph space.
+
+\[
+P(G) \propto \left ( \frac{\theta}{1-\theta}\right) ^{|E|}
+\]The G-Wishart distribution is a convenient prior choice for the
+precision matrix because it is conjugated with
+Equation~\ref{eq-likelihood}. The G-Wishart prior of a given graph,
+\(W_G(b, D)\), depends on the number of degrees of freedom \(b>2\) and a
+matrix \(D\in M^+\) that is usually set to be the identity matrix.
+
+\[
+P(\Omega|G) \propto |\Omega|^{(b-2)/2} \exp\left \{ -\frac 1 2 \text{tr}(D\Omega)  \right\} \mathbb 1_{\Omega\in M ^+}
+\]
+
+\hypertarget{graph-search-birth-death-mcmc}{%
+\subsection{Graph search: Birth-death
+MCMC}\label{graph-search-birth-death-mcmc}}
+
+The graph space grows exponentially with the number of nodes/taxa.
+Concretely, there are \(2^{p(p-1)/2}\) graphs. Then, for this method to
+work in practice, you must use an efficient \emph{search} algorithm.
+
+Trans-dimensional Markov Chain Monte Carlo algorithms explores the graph
+space and estimate the parameters of the model simultaneously. The
+convergence of this algorithms, such as reversible-jump MCMC, have been
+proven difficult. A. Mohammadi and Wit (2015) proposed a birth-death
+MCMC algorithm that seems to work better in practice.
+
+This algorithm adds and removes links according to independent birth and
+death Poisson processes of every edge. It is formulated in such a way
+that the posterior probability of a graph is proportional to how long
+the sampling algorithm stayed in a particular graph.
+
+\hypertarget{graph-selection-stars}{%
+\subsection{Graph selection: StARS}\label{graph-selection-stars}}
+
+A. Mohammadi and Wit (2015) is a bayesian inference method that explores
+the graph space (graph search). In contrast, the Meinshausen and
+Bühlmann method and Glasso have a unique solution for any given value of
+\(\lambda\). This means that, for a given grid of penalties
+\(\Lambda=[\lambda_1, \dots, \lambda_s]\), we will obtain a a set of
+graphs \([\hat G_{\lambda_1}, \dots, \hat G_{\lambda_s}]\). Graph
+selection consist on choosing \(\lambda\) so the correspondent graph is
+optimal under certain criterion.
+
+Different model selection procedures include \(K\)-cross fold validation
+and optimizing some parameter like the Akaike information criterion or
+the Bayesian information criterion (BIC). However, since the publication
+of the SPIEC-EASI\footnote{SPIEC-EASI stands for \textbf{SP}arse
+  \textbf{I}nvers\textbf{E C}ovariance \textbf{E}stimation for cological
+  \textbf{AS}sociation \textbf{I}nference} method (Kurtz et al. 2015),
+nearly all research microbial co-occurrence network inference have used
+the StARS\footnote{STARS stands for Stability Approach to Regularization
+  Selection.} method (Liu, Roeder, and Wasserman, n.d.).
+
+The core idea of StARS is to draw many random \emph{overlapping
+subsamples} (without replacement)\emph{,} and solve the graphical lasso
+problem for each subsample with decreasing values of \(\lambda\) until
+there is a small but \emph{acceptable} amount of variability. Liu,
+Roeder, and Wasserman (n.d.) claimed that that StARS's goal is to over
+select edges.That is, that the true graph \(G\) is contained in
+estimated graph \(\hat G\).
+
+Liu, Roeder, and Wasserman (n.d.) define \(\xi^b_{ij}\) as a measurement
+of the instability of a certain edge \((i, j)\) across \(b\) subsamples
+for a given \(\lambda\) value. It can interpreted as the fraction of
+times any pair of the \(b\) graphs disagree on the presence of the
+\((i, j)\) edge.
+
+The StARS method selects \(\lambda\) according to the total instability
+by averaging over all edges (Equation~\ref{eq-total-instability}).
+Concretely, they choose \(\lambda\) according to
+Equation~\ref{eq-lambda}, where \(\beta\) is a cut point they set to be
+0.05. We can interpret it as choosing the most sparse graph such that
+the average total instability is equal or less than
+\(\beta\).\footnote{If \(\lambda\) is sufficiently large, all graphs
+  will be empty, and, therefore the instability will also be zero. If we
+  decrease \(\lambda\), graphs will eventually not be empty and the
+  instability will start increasing. However, at some point, smaller and
+  smaller values of \(\lambda\) will start decreasing the stability.
+  Consider, for example, the case of \(\lambda=0\), where the graph will
+  be always fully connected (at least with the Meinshausen and Bühlmann
+  method). To avoid choosing a dense and stable graph, Liu, Roeder, and
+  Wasserman (n.d.) converts \(D_b(\lambda)\) into monotonic by not
+  consider such small values of \(\lambda\) (see the papers for more
+  details)}
+
+\begin{equation}\protect\hypertarget{eq-total-instability}{}{
+D_b(\lambda) = \frac{\sum_{s<t}\hat{\xi^b_{ij}}}{p \choose 2}
+}\label{eq-total-instability}\end{equation}
+
+\begin{equation}\protect\hypertarget{eq-lambda}{}{
+\lambda_t = \sup\left\{ \frac{1}{\lambda} : \bar D_b(\lambda) \leq \beta \right \}
+}\label{eq-lambda}\end{equation}
+
+To avoid this artifact, Liu, Roeder, and Wasserman (n.d.) choose
+\(\lambda\) according to XXX,
+
+propose to do not consider \$ choose \(\lambda\) as shown in \[
+\hat \lambda_{t} = \sup_{0 \leq t \leq \lambda} \left \{ \lambda:  \right \}
+\]
+
+\hypertarget{refs}{}
+\begin{CSLReferences}{1}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-abu-mostafa2012}{}}%
+Abu-Mostafa, Yaser S., Malik Magdon-Ismail, and Hsuan-Tien Lin. 2012.
+\emph{Learning from data: a short course}. S.l.: AMLbook.com.
+
+\leavevmode\vadjust pre{\hypertarget{ref-badri2020}{}}%
+Badri, Michelle, Zachary D Kurtz, Richard Bonneau, and Christian L
+Müller. 2020. {``Shrinkage Improves Estimation of Microbial Associations
+Under Different Normalization Methods.''} \emph{NAR Genomics and
+Bioinformatics} 2 (4): lqaa100.
+\url{https://doi.org/10.1093/nargab/lqaa100}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-blanchet2020}{}}%
+Blanchet, F. Guillaume, Kevin Cazelles, and Dominique Gravel. 2020.
+{``Co{-}Occurrence Is Not Evidence of Ecological Interactions.''} Edited
+by Elizabeth Jeffers. \emph{Ecology Letters} 23 (7): 1050--63.
+\url{https://doi.org/10.1111/ele.13525}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-brandes2001}{}}%
+Brandes, Ulrik. 2001. {``A Faster Algorithm for Betweenness
+Centrality*.''} \emph{The Journal of Mathematical Sociology} 25 (2):
+163--77. \url{https://doi.org/10.1080/0022250X.2001.9990249}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-carvalho2009}{}}%
+Carvalho, C. M., and J. G. Scott. 2009. {``Objective Bayesian Model
+Selection in Gaussian Graphical Models.''} \emph{Biometrika} 96 (3):
+497--512. \url{https://www.jstor.org/stable/27798844}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-clauset2004}{}}%
+Clauset, Aaron, M. E. J. Newman, and Cristopher Moore. 2004. {``Finding
+Community Structure in Very Large Networks.''} \emph{Physical Review E}
+70 (6): 066111. \url{https://doi.org/10.1103/PhysRevE.70.066111}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-freeman1978}{}}%
+Freeman, Linton C. 1978. {``Centrality in Social Networks Conceptual
+Clarification.''} \emph{Social Networks} 1 (3): 215--39.
+\url{https://doi.org/10.1016/0378-8733(78)90021-7}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-friedman2008}{}}%
+Friedman, J., T. Hastie, and R. Tibshirani. 2008. {``Sparse Inverse
+Covariance Estimation with the Graphical Lasso.''} \emph{Biostatistics}
+9 (3): 432--41. \url{https://doi.org/10.1093/biostatistics/kxm045}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-guseva2022}{}}%
+Guseva, Ksenia, Sean Darcy, Eva Simon, Lauren V. Alteio, Alicia
+Montesinos-Navarro, and Christina Kaiser. 2022. {``From Diversity to
+Complexity: Microbial Networks in Soils.''} \emph{Soil Biology and
+Biochemistry} 169 (June): 108604.
+\url{https://doi.org/10.1016/j.soilbio.2022.108604}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-ha2020}{}}%
+Ha, Min Jin, Junghi Kim, Jessica Galloway-Peña, Kim-Anh Do, and
+Christine B. Peterson. 2020. {``Compositional Zero-Inflated Network
+Estimation for Microbiome Data.''} \emph{BMC Bioinformatics} 21 (21):
+581. \url{https://doi.org/10.1186/s12859-020-03911-w}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-hansen2011}{}}%
+Hansen, Derek L., Ben Shneiderman, and Marc A. Smith. 2011. {``Chapter 3
+- Social Network Analysis: Measuring, Mapping, and Modeling Collections
+of Connections.''} In, edited by Derek L. Hansen, Ben Shneiderman, and
+Marc A. Smith, 31--50. Boston: Morgan Kaufmann.
+\url{https://doi.org/10.1016/B978-0-12-382229-1.00003-5}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-jones2005}{}}%
+Jones, Beatrix, Carlos Carvalho, Adrian Dobra, Chris Hans, Chris Carter,
+and Mike West. 2005. {``Experiments in Stochastic Computation for
+High-Dimensional Graphical Models.''} \emph{Statistical Science} 20 (4).
+\url{https://doi.org/10.1214/088342305000000304}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-jongerling2023}{}}%
+Jongerling, Joran, Sacha Epskamp, and Donald R. Williams. 2023.
+{``Bayesian Uncertainty Estimation for Gaussian Graphical Models and
+Centrality Indices.''} \emph{Multivariate Behavioral Research} 58 (2):
+311--39. \url{https://doi.org/10.1080/00273171.2021.1978054}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-kleinberg1998}{}}%
+Kleinberg, Jon M. 1998. {``Authoritative Sources in a Hyperlinked
+Environment.''} In, 668677. SODA '98. USA: Society for Industrial;
+Applied Mathematics.
+
+\leavevmode\vadjust pre{\hypertarget{ref-kurtz2015}{}}%
+Kurtz, Zachary D., Christian L. Müller, Emily R. Miraldi, Dan R.
+Littman, Martin J. Blaser, and Richard A. Bonneau. 2015. {``Sparse and
+Compositionally Robust Inference of Microbial Ecological Networks.''}
+\emph{PLOS Computational Biology} 11 (5): e1004226.
+\url{https://doi.org/10.1371/journal.pcbi.1004226}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-li}{}}%
+Li, Yunfan, Bruce A. Craig, and Anindya Bhadra. n.d. {``The Graphical
+Horseshoe Estimator for Inverse Covariance Matrices.''}
+\url{https://doi.org/10.48550/arXiv.1707.06661}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-liu}{}}%
+Liu, Han, Kathryn Roeder, and Larry Wasserman. n.d. {``Stability
+Approach to Regularization Selection (StARS) for High Dimensional
+Graphical Models.''} \url{https://doi.org/10.48550/arXiv.1006.3316}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-lutz2022}{}}%
+Lutz, Kevin C., Shuang Jiang, Michael L. Neugent, Nicole J. De Nisco,
+Xiaowei Zhan, and Qiwei Li. 2022. {``A Survey of Statistical Methods for
+Microbiome Data Analysis.''} \emph{Frontiers in Applied Mathematics and
+Statistics} 8.
+\url{https://www.frontiersin.org/articles/10.3389/fams.2022.884810}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-matchado2021}{}}%
+Matchado, Monica Steffi, Michael Lauber, Sandra Reitmeier, Tim
+Kacprowski, Jan Baumbach, Dirk Haller, and Markus List. 2021. {``Network
+Analysis Methods for Studying Microbial Communities: A Mini Review.''}
+\emph{Computational and Structural Biotechnology Journal} 19 (January):
+2687--98. \url{https://doi.org/10.1016/j.csbj.2021.05.001}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-meinshausen2006}{}}%
+Meinshausen, Nicolai, and Peter Bühlmann. 2006. {``High-Dimensional
+Graphs and Variable Selection with the Lasso.''} \emph{The Annals of
+Statistics} 34 (3): 1436--62.
+\url{https://doi.org/10.1214/009053606000000281}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-mohammadi2015}{}}%
+Mohammadi, A., and E. C. Wit. 2015. {``Bayesian Structure Learning in
+Sparse Gaussian Graphical Models.''} \emph{Bayesian Analysis} 10 (1):
+109--38. \url{https://doi.org/10.1214/14-BA889}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-mohammadi2019}{}}%
+Mohammadi, Reza, and Ernst C. Wit. 2019. {``BDgraph: An R Package for
+Bayesian Structure Learning in Graphical Models.''} \emph{Journal of
+Statistical Software} 89 (May): 1--30.
+\url{https://doi.org/10.18637/jss.v089.i03}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-piironen2017}{}}%
+Piironen, Juho, and Aki Vehtari. 2017. {``Sparsity Information and
+Regularization in the Horseshoe and Other Shrinkage Priors.''}
+\emph{Electronic Journal of Statistics} 11 (2): 5018--51.
+\url{https://doi.org/10.1214/17-EJS1337SI}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-richardli2019}{}}%
+Richard Li, Zehang, Tyler H. McCormick, and Samuel J. Clark. 2019.
+{``Bayesian Joint Spike-and-Slab Graphical Lasso.''} \emph{Proceedings
+of Machine Learning Research} 97 (June): 3877--85.
+\url{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7845917/}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-ruxf6ttjers2018}{}}%
+Röttjers, Lisa, and Karoline Faust. 2018. {``From Hairballs to
+Hypotheses{\textendash}biological Insights from Microbial Networks.''}
+\emph{FEMS Microbiology Reviews} 42 (6): 761--80.
+\url{https://doi.org/10.1093/femsre/fuy030}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-uhler}{}}%
+Uhler, Caroline. n.d. {``Gaussian Graphical Models: An Algebraic and
+Geometric Perspective.''}
+\url{https://doi.org/10.48550/arXiv.1707.04345}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-devries2018}{}}%
+Vries, Franciska T. de, Rob I. Griffiths, Mark Bailey, Hayley Craig,
+Mariangela Girlanda, Hyun Soon Gweon, Sara Hallin, et al. 2018. {``Soil
+Bacterial Networks Are Less Stable Under Drought Than Fungal
+Networks.''} \emph{Nature Communications} 9 (1): 3033.
+\url{https://doi.org/10.1038/s41467-018-05516-7}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-wang2012}{}}%
+Wang, Hao. 2012. {``Bayesian Graphical Lasso Models and Efficient
+Posterior Computation.''} \emph{Bayesian Analysis} 7 (4).
+\url{https://doi.org/10.1214/12-BA729}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-zamkovaya2021}{}}%
+Zamkovaya, Tatyana, Jamie S. Foster, Valérie de Crécy-Lagard, and Ana
+Conesa. 2021. {``A Network Approach to Elucidate and Prioritize
+Microbial Dark Matter in Microbial Communities.''} \emph{The ISME
+Journal} 15 (1): 228--44.
+\url{https://doi.org/10.1038/s41396-020-00777-x}.
+
+\end{CSLReferences}
+
+
+
+\end{document}
