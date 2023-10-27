@@ -9,7 +9,7 @@ The recent advances in microbial amplicon and metagenomic sequencing produces la
 
 Microbial networks are temporary or spatial snapshots of ecosystems, where taxonomic units are displayed as nodes (but also environmental variables), and significant associations as undirected edges [@röttjers2018]. This is an ambiguous definition that includes different methods that seek to characterize fundamental properties and mechanisms of microbial ecosystems [@lutz2022].
 
-The need to estimate properties of networks to arrive at meaninful biogical insights has been previously pointed out [@röttjers2018; @abu-mostafa2012]. In this work we use one of the most common microbial networks, called undirected Gaussian graphical models[^1]. Specifically, we will focus on the analysis of uncertainty measurement and statistical robustness of two commonly used metrics in the field of ecological microbiology [@matchado2021;@devries2018;@zamkovaya2021;@guseva2022].
+The need to estimate properties of networks to arrive at meaninful biogical insights has been previously pointed out [@röttjers2018; @abu-mostafa2012]. In this work we use one of the most common microbial networks, called undirected Gaussian graphical models[^1]. Specifically, we will focus on the analysis of uncertainty measurement and statistical robustness of two commonly used metrics in the field of ecological microbiology [@matchado2021; @devries2018; @zamkovaya2021; @guseva2022].
 
 [^1]: A graphical model is a probabilistic model for which a graph expresses the conditional dependence structure between random variables.
 
@@ -90,7 +90,7 @@ P(\Omega | \lambda) \propto \prod_{i<j} \left \{ \text{DE}(w_{ij}|\lambda)\right
 \end{aligned}
 $$ {#eq-bayes-glasso}
 
-There are several adaptations of this basic setting in the literature [@richardli2019;@li;@piironen2017]. All of them can be computed efficiently and are relatively easy to converge. It may also be easier to have an intuition about the priors of the model.
+There are several adaptations of this basic setting in the literature [@richardli2019; @li; @piironen2017]. All of them can be computed efficiently and are relatively easy to converge. It may also be easier to have an intuition about the priors of the model.
 
 However, they all have the same problem: the resulting precision matrix is not sparse. As a result, in order to infer the underlying network (which is our ultimate goal), these methods require a *post hoc* heuristic whether to include or exclude an edge. For example, @jongerling2023 set all off-diagonal elements to be exactly zero if the 95% credibility interval containst the zero value.
 
@@ -110,11 +110,11 @@ $$
 P(Z|G, \Omega) \propto |\Omega|^{n/2}\exp\left \{ -\frac 1 2 \text{tr}(\Omega Z^\top Z) \right\}
 $$ {#eq-likelihood}
 
-Many priors have been proposed for the graph structure [@mohammadi2015;@carvalho2009;@jones2005]. The one implemented in the BDgraph library consists in a Bernoulli prior on each link inclusion [@mohammadi2019]. Prior knowledge can me included by assigning meaningful probabilities to different edges. Otherwise, the prior probability depends on a $\theta \in (0, 1)$ parameter that express our prior belief in the sparsity of the graph. Notice that, if $\theta = 0.5$, the distribution corresponds to the uniform distribution over the whole graph space.
+Many priors have been proposed for the graph structure [@mohammadi2015; @carvalho2009; @jones2005]. The one implemented in the BDgraph library consists in a Bernoulli prior on each link inclusion [@mohammadi2019]. Prior knowledge can me included by assigning meaningful probabilities to different edges. Otherwise, the prior probability depends on a $\theta \in (0, 1)$ parameter that express our prior belief in the sparsity of the graph. Notice that, if $\theta = 0.5$, the distribution corresponds to the uniform distribution over the whole graph space.
 
 $$
 P(G) \propto \left ( \frac{\theta}{1-\theta}\right) ^{|E|}
-$$The G-Wishart distribution is a convenient prior choice for the precision matrix because it is conjugated with @eq-likelihood [@roverato2002]. The G-Wishart prior of a given graph, $W_G(b, D)$, depends on the number of degrees of freedom $b>2$ and a matrix $D\in M^+$ that is usually set to be the identity matrix.
+$$The G-Wishart distribution is a convenient prior choice for the precision matrix because it is conjugated with [@eq-likelihood; @roverato2002]. The G-Wishart prior of a given graph, $W_G(b, D)$, depends on the number of degrees of freedom $b>2$ and a matrix $D\in M^+$ that is usually set to be the identity matrix.
 
 $$
 P(\Omega|G) \propto |\Omega|^{(b-2)/2} \exp\left \{ -\frac 1 2 \text{tr}(D\Omega)  \right\} \mathbb 1_{\Omega\in M ^+}
@@ -147,15 +147,11 @@ The StARS method selects $\lambda$ according to the total instability by averagi
 [^9]: If $\lambda$ is sufficiently large, all graphs will be empty, and, therefore the instability will also be zero. If we decrease $\lambda$, graphs will eventually not be empty and the instability will start increasing. However, at some point, smaller and smaller values of $\lambda$ will start decreasing the stability. Consider, for example, the case of $\lambda=0$, where the graph will be always fully connected (at least with the Meinshausen and Bühlmann method). To avoid choosing a dense and stable graph, @liu converts $D_b(\lambda)$ into monotonic by not consider such small values of $\lambda$ (see the papers for more details)
 
 $$
-D_b(\lambda) = \frac{\sum_{s<t}\hat{\xi^b_{ij}}}{p \choose 2}
+D_b(\lambda) = \frac{\sum_{s<t}\hat{\xi^b_{ij}}}{{p \choose 2}}
 $$ {#eq-total-instability}
 
 $$
 \lambda_t = \sup\left\{ \frac{1}{\lambda} : \bar D_b(\lambda) \leq \beta \right \}
 $$ {#eq-lambda}
 
-To avoid this artifact, @liu choose $\lambda$ according to XXX,
-
-propose to do not consider \$ choose $\lambda$ as shown in $$
-\hat \lambda_{t} = \sup_{0 \leq t \leq \lambda} \left \{ \lambda:  \right \}
-$$
+## References
