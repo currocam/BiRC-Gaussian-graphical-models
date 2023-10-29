@@ -1,0 +1,120 @@
+singularity: ".singularities/workflow.sif"
+
+rule report:
+    input: 
+        qmd = 'BiRC-Gaussian-graphical-models.qmd',
+        bib = 'references.bib',
+        container = '.singularities/workflow.sif'
+    output: 
+        'report/BiRC-Gaussian-graphical-models.pdf'
+    container: None
+    shell:
+        "{input.container} quarto render --output-dir report"
+
+rule simulate_mvn:
+    output: 
+        "data/simulated/mvn/{graph}.Rds"
+    params:
+        seed = 123, # random seed
+        n = 1000, # number of samples
+        d = 100, # number of OTUs
+    script:
+        "01-mvn_huge_simulation.R"
+
+rule fit_pulsar:
+    input:
+        "data/simulated/mvn/{graph}.Rds"
+    output: 
+        "data/interm/StARS/mb_{graph}_n{n}.Rds"
+    params:
+        n_lambda = 50, # number of lambda values in the grid
+        n_reps = 100, # number of subsamples
+        lambda_min_ratio = 1e-3, # ratio of the minimum lambda value
+        log_space = True, # whether to use log space for the lambda grid
+        seed = 123 # random seed to sample data (not for the subsampling)
+    threads: 8
+    benchmark: "data/interm/StARS/mb_{graph}_n{n}.time"
+    script:
+        "02-mvn-fit-pulsar.R"
+
+rule fit_BDgraph:
+    input:
+        "data/simulated/mvn/{graph}.Rds"
+    output: 
+        "data/interm/BDgraph/bdmcmc_{graph}_n{n}.Rds"
+    params:
+        iter = 30000, # number of iterations
+        seed = 123, # random seed
+        g_prior = 0.2, # prior probability of an edge
+        df_prior = 3, # prior degrees of freedom
+    threads: 8
+    benchmark: "data/interm/BDgraph/bdmcmc_{graph}_n{n}.time"
+    script:
+        "03-mvn-fit-BDgraph.R"
+
+graph_structures = ["random", "hub", "cluster", "band", "scale-free"]
+n_samples_fit = [50, 100, 200, 1000]
+
+rule mvn_roc_curves:
+    input:
+        theta_true = "data/simulated/mvn/{graph}.Rds",
+        theta_mb = lambda wildcards: expand("data/interm/StARS/mb_{graph}_n{n}.Rds", graph = wildcards.graph, n = n_samples_fit),
+        theta_bdmcmc = lambda wildcards: expand("data/interm/BDgraph/bdmcmc_{graph}_n{n}.Rds", graph = wildcards.graph, n = n_samples_fit)
+    output: 
+        "data/results/mvn_roc_curves/{graph}.tsv"
+    script:
+        "04-mvn-roc-curves.R"
+
+rule mvn_F1_scores:
+    input:
+        theta_true = "data/simulated/mvn/{graph}.Rds",
+        theta_mb = lambda wildcards: expand("data/interm/StARS/mb_{graph}_n{n}.Rds", graph = wildcards.graph, n = n_samples_fit),
+        theta_bdmcmc = lambda wildcards: expand("data/interm/BDgraph/bdmcmc_{graph}_n{n}.Rds", graph = wildcards.graph, n = n_samples_fit)
+    output: 
+        "data/results/mvn_F1_scores/{graph}.tsv"
+    params:
+        threshold = 0.5
+    script:
+        "05-mvn-F1-score.R"
+
+rule figures_mvn_roc_curve:
+    input: 
+        "figures/theme.R",
+        "figures/01-mvn_roc_curves/plot.R",
+        expand("data/results/{dir}/{graph}.tsv", graph = graph_structures, dir = ["mvn_roc_curves", "mvn_F1_scores"])
+    output:
+        expand("figures/01-mvn_roc_curves/{graph}.pdf", graph = graph_structures)
+    shell:
+        "Rscript figures/01-mvn_roc_curves/plot.R"
+
+
+
+rule aggregate_pulsar_benchmarks:
+    input: 
+        expand("data/interm/StARS/mb_{graph}_n{n}.time", graph = graph_structures, n = n_samples_fit)
+    output: 
+        "data/interm/StARS/mb_benchmarks.tsv"
+    shell:
+        "head -n 1 {input[0]} > {output} && "
+        "tail -n +2 -q {input} >> {output}"
+
+rule aggregate_BDgraph_benchmarks:
+    input: 
+        expand("data/interm/BDgraph/bdmcmc_{graph}_n{n}.time", graph = graph_structures, n = n_samples_fit)
+    output: 
+        "data/interm/BDgraph/bdmcmc_benchmarks.tsv"
+    shell:
+        "head -n 1 {input[0]} > {output} && "
+        "tail -n +2 -q {input} >> {output}"
+
+
+rule all:
+    default_target:  True,
+    input: 
+        'report/BiRC-Gaussian-graphical-models.pdf',
+        expand("data/simulated/mvn/{graph}.Rds", graph = graph_structures),
+        expand("data/interm/StARS/mb_{graph}_n{n}.Rds", graph =graph_structures, n = n_samples_fit),
+        expand("data/interm/BDgraph/bdmcmc_{graph}_n{n}.Rds", graph =graph_structures, n = n_samples_fit),
+        expand("figures/01-mvn_roc_curves/{graph}.pdf", graph = graph_structures),
+        "data/interm/StARS/mb_benchmarks.tsv",
+        "data/interm/BDgraph/bdmcmc_benchmarks.tsv",

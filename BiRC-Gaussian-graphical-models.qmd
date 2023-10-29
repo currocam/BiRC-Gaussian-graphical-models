@@ -94,7 +94,7 @@ There are several adaptations of this basic setting in the literature [@richardl
 
 However, they all have the same problem: the resulting precision matrix is not sparse. As a result, in order to infer the underlying network (which is our ultimate goal), these methods require a *post hoc* heuristic whether to include or exclude an edge. For example, @jongerling2023 set all off-diagonal elements to be exactly zero if the 95% credibility interval containst the zero value.
 
-In my opinion, this decision-rule makes more difficult to estimate the uncertainty of all network metrics in a transparent way. @jongerling202 explored method to overcome the fact that applying the decision rule when estimating the posteriors a centrality metrics requires to know the whole posterior distribution *beforehand*.
+In my opinion, this decision-rule makes more difficult to estimate the uncertainty of all network metrics in a transparent way. @jongerling2023 explored method to overcome the fact that applying the decision rule when estimating the posteriors a centrality metrics requires to know the whole posterior distribution *beforehand*.
 
 ## Sparse Bayesian GGM using G-Wishart priors
 
