@@ -1,0 +1,458 @@
+---
+title: "Centrality robustness"
+format: html
+bibliography: references.bib
+---
+
+## Background
+
+How much can we expect the networks centrality metrics to change when having errors?
+
+@martin2019 said that Sparse graphs are more challenging (specially for metrics such as Eigenvector Centrality Scores). We are gonna consider two types of relevant errors:
+
+1.  Edges missing uniformly at random
+2.  Spurious edges
+
+```{r}
+library(tidyverse)
+library(ggraph)
+library(igraph)
+library(tidygraph)
+conflicted::conflicts_prefer(tidygraph::filter)
+source("../figures/theme.R")
+seed <- 123
+n <- 200
+d <- 50
+graph <- "random"
+set.seed(seed)
+data <- huge::huge.generator(
+  n = n, # sample size
+  d = d, # number of variables
+  graph = graph, # graph structure
+)
+```
+
+```{r}
+data$theta <- as.matrix(data$theta)
+rownames(data$theta) <- 1:nrow(data$theta)
+colnames(data$theta) <- 1:nrow(data$theta)
+
+graph <- data$theta |>
+  graph_from_adjacency_matrix(mode = "undirected") |>
+  as_tbl_graph() |>
+  mutate(centrality_degree = centrality_degree())
+ggraph(graph, layout = 'kk') + 
+  geom_edge_fan(aes(alpha = after_stat(index)), show.legend = FALSE) + 
+  geom_node_point(aes(size = centrality_degree)) + 
+  theme_graph(foreground = 'steelblue', fg_text_colour = 'white')
+```
+
+Let's start simple with graph-wise metrics
+
+```{r}
+true_mod <- cluster_walktrap(graph,weights = NA) |> modularity()
+```
+
+Let's remove edges:
+
+```{r}
+compute_modularity <- function(g) {
+ cluster_walktrap(g, weights = NA) |> modularity() 
+}
+
+simulate_with_missing_edges <- function(g, n_tries, p, func) {
+  edges <- g |> activate(edges) |> as_tibble() 
+  rbinom(n = n_tries, size = nrow(edges), prob = p) |>
+    map(\(n) slice_sample(edges, n = n, replace = FALSE)) |>
+    map(graph_from_data_frame, directed = FALSE) |>
+    map(func)
+}
+n_tries <- 1000
+probs <- c(0.99, 0.95, 0.90, 0.80)
+names(probs) <- probs
+modularity_simulation <-  probs |>
+  map(\(p) simulate_with_missing_edges(graph, n_tries, p, compute_modularity) |> as.numeric()) |>
+  bind_rows() |>
+  pivot_longer(everything(), names_to = "probability", values_to = "modularity")
+```
+
+```{r}
+modularity_simulation |>
+  ggplot(aes(x = modularity))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = true_mod)+
+  facet_wrap(~probability)
+
+```
+
+Now, we try to do the same with a centrality measure. Let's start with only the most connected node:
+
+betweenness_nodes\[\[most_connected_node\]\]
+
+```{r}
+graph_raw <- igraph::graph_from_adjacency_matrix(data$theta, mode = "undirected")
+betweenness_nodes <- graph_raw |> betweenness()
+most_connected_node <- betweenness_nodes |> which.max()
+betweenness_nodes[[most_connected_node]]
+```
+
+```{r}
+simulate_with_missing_edges_betwennes <- function(g, n_tries, p) {
+  n_edges <- E(g) |> length()
+  map(1:n_tries, \(x) which(rbinom(n_edges, size = 1, prob = p) == 1)) |>
+    map(\(include) subgraph.edges(g,include, delete.vertices = FALSE)) |>
+    map(betweenness, directed = FALSE) |>
+    bind_cols() |>
+    mutate(name = 1:n()) |>
+    pivot_longer(-name, values_to = "betweennes", names_to = "iter") |>
+    select(-iter)
+  }
+   
+betweenness_data <- probs |>
+  map(\(p) simulate_with_missing_edges_betwennes(graph_raw, n_tries, p)) |>
+  bind_rows(.id = "probability")
+
+```
+
+Now, let's visualize for our selected node:
+
+```{r}
+betweenness_data |>
+  filter(name == most_connected_node) |>
+  ggplot(aes(x = betweennes))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = betweenness_nodes[[most_connected_node]])+
+  facet_wrap(~probability)
+```
+
+Let's do the same with other node:
+
+```{r}
+betweenness_data |>
+  filter(name == 20) |>
+  ggplot(aes(x = betweennes))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = betweenness_nodes[[20]])+
+  facet_wrap(~probability)
+```
+
+And let's compute the differences:
+
+```{r}
+tibble(name = 1:d, true_betweennes = betweenness_nodes) |>
+  left_join(betweenness_data) |>
+  mutate(diff = true_betweennes - betweennes) |>
+  ggplot(aes(group = name, y = diff, colour = true_betweennes))+
+  geom_boxplot()+
+  facet_wrap(~probability, nrow = 4)
+```
+
+Let's do the same with the hub score now:
+
+```{r}
+graph_raw <- igraph::graph_from_adjacency_matrix(data$theta, mode = "undirected")
+hubs_nodes <- graph_raw |> hub_score(scale = TRUE) |> pluck("vector")
+most_hub_node <- hubs_nodes |> which.max()
+hubs_nodes[[most_hub_node]]
+```
+
+```{r}
+simulate_with_missing_edges_hub <- function(g, n_tries, p) {
+  n_edges <- E(g) |> length()
+  map(1:n_tries, \(x) which(rbinom(n_edges, size = 1, prob = p) == 1)) |>
+    map(\(include) subgraph.edges(g,include, delete.vertices = FALSE)) |>
+    map(hub_score, scale = TRUE) |>
+    map(pluck, "vector") |>
+    bind_cols() |>
+    mutate(name = 1:n()) |>
+    pivot_longer(-name, values_to = "hub_score", names_to = "iter") |>
+    select(-iter)
+  }
+   
+hub_data <- probs |>
+  map(\(p) simulate_with_missing_edges_hub(graph_raw, n_tries, p)) |>
+  bind_rows(.id = "probability")
+```
+
+```{r}
+hub_data |>
+  filter(name == most_hub_node) |>
+  ggplot(aes(x = hub_score))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = 1)+
+  facet_wrap(~probability)
+```
+
+```{r}
+hub_data |>
+  filter(name == 20) |>
+  ggplot(aes(x = hub_score))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = hubs_nodes[[20]])+
+  facet_wrap(~probability)
+```
+
+And check the differences
+
+```{r}
+tibble(name = 1:d, true_hub_score = hubs_nodes) |>
+  left_join(hub_data) |>
+  mutate(diff = true_hub_score - hub_score) |>
+  ggplot(aes(group = name, y = diff, colour =true_hub_score))+
+  geom_boxplot()+
+  facet_wrap(~probability, nrow = 4)
+```
+
+Now, we are gonna add spurious edges:
+
+```{r}
+simulate_with_spurious_edges_modularity <- function(g, n_tries, p) {
+  complement_graph <- complementer(g)
+  n_edges <- E(complement_graph) |> length()
+  map(1:n_tries, \(x) which(rbinom(n_edges, size = 1, prob = p) == 1)) |>
+    map(\(include) subgraph.edges(complement_graph,include, delete.vertices = FALSE)) |>
+    map(\(cg) igraph::union(g, cg, byname = TRUE)) |>
+    map(as_tbl_graph) |>
+    map(compute_modularity) |>
+    as.numeric()
+}
+
+n_tries <- 1000
+probs <- c(0.01, 0.05, 0.10, 0.20)
+graph_raw <- igraph::graph_from_adjacency_matrix(data$theta, mode = "undirected")
+names(probs) <- probs
+modularity_simulation <-  probs |>
+  map(\(p) simulate_with_spurious_edges_modularity(graph_raw, n_tries, p)) |>
+  bind_rows() |>
+  pivot_longer(everything(), names_to = "probability", values_to = "modularity")
+```
+
+```{r}
+modularity_simulation |>
+  ggplot(aes(x = modularity))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = true_mod)+
+  facet_wrap(~probability)
+```
+
+Now, with the betwennness:
+
+```{r}
+simulate_with_spurious_edges_betwenness <- function(g, n_tries, p) {
+  complement_graph <- complementer(g)
+  n_edges <- E(complement_graph) |> length()
+  map(1:n_tries, \(x) which(rbinom(n_edges, size = 1, prob = p) == 1)) |>
+    map(\(include) subgraph.edges(complement_graph,include, delete.vertices = FALSE)) |>
+    map(\(cg) igraph::union(g, cg, byname = TRUE)) |>
+    map(betweenness, directed = FALSE) |>
+    bind_cols() |>
+    mutate(name = 1:n()) |>
+    pivot_longer(-name, values_to = "betweennes", names_to = "iter") |>
+    select(-iter)
+}
+
+betweenness_data <- probs |>
+  map(\(p) simulate_with_spurious_edges_betwenness(graph_raw, n_tries, p)) |>
+  bind_rows(.id = "probability")
+```
+
+Now we visualize the most connected node:
+
+```{r}
+betweenness_data |>
+  filter(name == most_connected_node) |>
+  ggplot(aes(x = betweennes))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = betweenness_nodes[[most_connected_node]])+
+  facet_wrap(~probability)
+```
+
+And another one:
+
+```{r}
+betweenness_data |>
+  filter(name == 20) |>
+  ggplot(aes(x = betweennes))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = betweenness_nodes[[20]])+
+  facet_wrap(~probability)
+```
+
+And finally the differences:
+
+```{r}
+tibble(name = 1:d, true_betweennes = betweenness_nodes) |>
+  left_join(betweenness_data) |>
+  mutate(diff = true_betweennes - betweennes) |>
+  ggplot(aes(group = name, y = diff, colour = true_betweennes))+
+  geom_boxplot()+
+  facet_wrap(~probability, nrow = 4)
+```
+
+Now, we are gonna do the same with the hub-score:
+
+```{r}
+simulate_with_spurious_edges_hub <- function(g, n_tries, p, func) {
+  complement_graph <- complementer(g)
+  n_edges <- E(complement_graph) |> length()
+  map(1:n_tries, \(x) which(rbinom(n_edges, size = 1, prob = p) == 1)) |>
+    map(\(include) subgraph.edges(complement_graph,include, delete.vertices = FALSE)) |>
+    map(\(cg) igraph::union(g, cg, byname = TRUE)) |>
+    map(hub_score, scale = TRUE) |>
+    map(pluck, "vector") |>
+    bind_cols() |>
+    mutate(name = 1:n()) |>
+    pivot_longer(-name, values_to = "hub_score", names_to = "iter") |>
+    select(-iter)
+}
+
+hub_data <-  probs |>
+  map(\(p) simulate_with_spurious_edges_hub(graph_raw, n_tries, p)) |>
+  bind_rows(.id = "probability")
+```
+
+Now we visualize the most connected node:
+
+```{r}
+hub_data |>
+  filter(name == most_hub_node) |>
+  ggplot(aes(x = hub_score))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = 1)+
+  facet_wrap(~probability)
+```
+
+And another node:
+
+```{r}
+hub_data |>
+  filter(name == 20) |>
+  ggplot(aes(x = hub_score))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = hubs_nodes[[20]])+
+  facet_wrap(~probability)
+```
+
+And the differences
+
+```{r}
+tibble(name = 1:d, true_hub_score = hubs_nodes) |>
+  left_join(hub_data) |>
+  mutate(diff = true_hub_score - hub_score) |>
+  ggplot(aes(group = name, y = diff, colour =true_hub_score))+
+  geom_boxplot()+
+  facet_wrap(~probability, nrow = 4)
+```
+
+# Both
+
+The last question is what happens when we commit both errors. Let's say there's a probability of 99% of including a true edge and a probability of 0.1% of the wrong
+
+```{r}
+simulate_with_spurious_missing_edges_modularity <- function(g, n_tries, p_missing, p_spur) {
+  complement_graph <- complementer(g)
+  n_edges <- E(complement_graph) |> length()
+  map(1:n_tries, \(x) which(rbinom(n_edges, size = 1, prob = p_spur) == 1)) |>
+    map(\(include) subgraph.edges(complement_graph,include, delete.vertices = FALSE)) |>
+    map(\(cg) {
+      n_edges <- E(g) |> length()
+      included <- which(rbinom(n_edges, size = 1, prob = p_missing) == 1)
+      missing_g <- subgraph.edges(g, included, delete.vertices = FALSE)
+      igraph::union(missing_g, cg, byname = TRUE)
+    }) |>
+    map(as_tbl_graph) |>
+    map(compute_modularity) |>
+    as.numeric()
+}
+n_tries <- 1000
+graph_raw <- igraph::graph_from_adjacency_matrix(data$theta, mode = "undirected")
+modularity_simulation <-  tibble(
+  p_spur = c(rep(0.001, n_tries), rep(0.01, n_tries)),
+  p_true = c(rep(0.99, n_tries), rep(0.95, n_tries)),
+  modularity = c(
+    simulate_with_spurious_missing_edges_modularity(graph_raw, n_tries, 0.99, 0.001),
+    simulate_with_spurious_missing_edges_modularity(graph_raw, n_tries, 0.95, 0.01)
+  )
+)
+```
+
+And now we visualize it:
+
+```{r}
+modularity_simulation |>
+  ggplot(aes(x = modularity))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = true_mod)+
+  facet_wrap(~p_spur+p_true)
+```
+
+And finally we do it with the hub score:
+
+```{r}
+simulate_with_spurious_missing_edges_hub <- function(g, n_tries, p_missing, p_spur) {
+  complement_graph <- complementer(g)
+  n_edges <- E(complement_graph) |> length()
+  map(1:n_tries, \(x) which(rbinom(n_edges, size = 1, prob = p_spur) == 1)) |>
+    map(\(include) subgraph.edges(complement_graph,include, delete.vertices = FALSE)) |>
+    map(\(cg) {
+      n_edges <- E(g) |> length()
+      included <- which(rbinom(n_edges, size = 1, prob = p_missing) == 1)
+      missing_g <- subgraph.edges(g, included, delete.vertices = FALSE)
+      igraph::union(missing_g, cg, byname = TRUE)
+    }) |>
+    map(hub_score, scale = TRUE) |>
+    map(pluck, "vector") |>
+    bind_cols() |>
+    mutate(name = 1:n()) |>
+    pivot_longer(-name, values_to = "hub_score", names_to = "iter") |>
+    select(-iter)
+}
+
+hub_data <-  probs |>
+  map(\(p) simulate_with_spurious_edges_hub(graph_raw, n_tries, p)) |>
+  bind_rows(.id = "probability")
+
+
+n_tries <- 1000
+graph_raw <- igraph::graph_from_adjacency_matrix(data$theta, mode = "undirected")
+hub_data <-  
+  bind_rows(
+    simulate_with_spurious_missing_edges_hub(graph_raw, n_tries, 0.99, 0.001) |>
+      mutate(p_spur = 0.001, p_true = 0.99),
+    simulate_with_spurious_missing_edges_hub(graph_raw, n_tries, 0.95, 0.01) |>
+            mutate(p_spur = 0.01, p_true = 0.95),
+  )
+```
+
+We visualize for the hub:
+
+```{r}
+hub_data |>
+  filter(name == most_hub_node) |>
+  ggplot(aes(x = hub_score))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = 1)+
+  facet_wrap(~p_spur+p_true)
+```
+
+For another:
+
+```{r}
+hub_data |>
+  filter(name == 20) |>
+  ggplot(aes(x = hub_score))+
+  geom_histogram(bins = 30)+
+  geom_vline(xintercept = hubs_nodes[[20]])+
+  facet_wrap(~p_spur+p_true)
+```
+
+And the differences:
+
+```{r}
+tibble(name = 1:d, true_hub_score = hubs_nodes) |>
+  left_join(hub_data) |>
+  mutate(diff = true_hub_score - hub_score) |>
+  ggplot(aes(group = name, y = diff, colour =true_hub_score))+
+  geom_boxplot()+
+  facet_wrap(~p_spur+p_true)
+```
