@@ -1,47 +1,50 @@
 ---
 title: "Gaussian graphical models"
+author: "Curro Campuzano"
 bibliography: references.bib
 ---
 
+Disclaimer: This is not a draft of the report, there's way to much unnecesary math.
+
 # Background
 
-The recent advances in microbial amplicon and metagenomic sequencing produces large collections of co-occurence data suitable for quantitative analysis [@badri2020]. Although limited by nature, microbial taxa associations *in situ* can not usually be assessed by observing interactions as in macro-ecosystems [@guseva2022]. Therefore, methods to extract valuable information and their interpretation are an active and controversial topic of research [@blanchet2020].
+The recent advances in microbial amplicon and metagenomic sequencing produce extensive collections of co-occurrence data suitable for quantitative analysis [@badri2020]. Although limited by nature, microbial taxa associations *in situ* can not usually be assessed by observing interactions as in macro-ecosystems [@guseva2022]. Therefore, methods to extract valuable information and their interpretation are an active and controversial research topic [@blanchet2020].
 
-Microbial networks are temporary or spatial snapshots of ecosystems, where taxonomic units are displayed as nodes (but also environmental variables), and significant associations as undirected edges [@röttjers2018]. This is an ambiguous definition that includes different methods that seek to characterize fundamental properties and mechanisms of microbial ecosystems [@lutz2022].
+Microbial networks are temporary or spatial snapshots of ecosystems, where we display taxonomic units as nodes (but also environmental variables) and significant associations as undirected edges [@röttjers2018]. This definition is ambiguous and includes different methods that seek to characterize fundamental properties and mechanisms of microbial ecosystems [@lutz2022].
 
-The need to estimate properties of networks to arrive at meaninful biogical insights has been previously pointed out [@röttjers2018; @abu-mostafa2012]. In this work we use one of the most common microbial networks, called undirected Gaussian graphical models[^1]. Specifically, we will focus on the analysis of uncertainty measurement and statistical robustness of two commonly used metrics in the field of ecological microbiology [@matchado2021; @devries2018; @zamkovaya2021; @guseva2022].
+We must estimate network properties to get meaningful biological insights from microbial networks [@röttjers2018; @abu-mostafa2012]. In this work, we used one of the most common microbial networks, called undirected Gaussian graphical models[^1]. Specifically, we focused on the analysis of uncertainty measurement and statistical robustness of two commonly used metrics in the field of ecological microbiology [@matchado2021; @devries2018; @zamkovaya2021; @guseva2022].
 
 [^1]: A graphical model is a probabilistic model for which a graph expresses the conditional dependence structure between random variables.
 
 ## Gaussian graphical models
 
-Here we adapt the classical definition of @uhler.
+Here, we adapted the classical definition of @uhler.
 
-Let $G = (V, E)$ be an undirected graph with nodes $V=\{1, \dots, p\}$ and edges $E \subset \{(i, j) \in V\times V : i<j\}$. We say a random vector $X\in\mathbb R^p$ follows a Gaussian graphical model (GMM) respect to the graph $G$ if it is distributed as $\mathcal N_p(0, \Omega ^{-1}$), whereas the precision matrix, $\Omega$, is a positive definite matrix of order $p$ such that $\Omega_{ij} = 0$ implies $(i, j) \notin E$.
+Let $G = (V, E)$ be an undirected graph with nodes $V=\{1, \dots, p\}$ and edges $E \subset \{(i, j) \in V\times V : i<j\}$. We say a random vector $X\in\mathbb R^p$ follows a Gaussian graphical model (GMM) for the graph $G$ if it is distributed as $\mathcal N_p(0, \Omega ^{-1}$), where the precision matrix, $\Omega$, is a positive definite matrix of order $p$ such that $\Omega_{ij} = 0$ implies $(i, j) \notin E$.
 
-The precision matrix is defined to be the inverse of the covariance matrix, $\Omega :=\Sigma^{-1}$. Notably, the absence of the edge $(i, j)$, as well as $\Omega_{ij}=0$, implies conditional independence between $X_i$ and $X_j$ given the all other variables.
+The precision matrix is defined to be the inverse of the covariance matrix, $\Omega :=\Sigma^{-1}$. Notably, the absence of the edge $(i, j)$, as well as $\Omega_{ij}=0$, implies conditional independence between $X_i$ and $X_j$ given all the other variables.
 
 ## Network metrics
 
-Metrics such as hub score[^2], betweenness centrality[^3], closeness centrality[^4], and degree centrality[^5] describes properties of the *nodes*. Whereas these metrics can be used to identity key taxa in interaction networks, they lack from a strong conceptual justification of why they could be used to identity keystone *taxa* in co-occurrence networks. Despite this, they are still widely used for this purpose [@röttjers2018; @guseva2022].
+Metrics such as hub score[^2], betweenness centrality[^3], closeness centrality[^4], and degree centrality[^5] describe properties of the *nodes*. Whereas these metrics can be used to identify key taxa in interaction networks, they lack a strong conceptual justification of why they could be used to identify keystone *taxa* in co-occurrence networks. Despite this, they are still widely used for this purpose [@röttjers2018; @guseva2022].
 
 [^2]: The hub scores are defined for undirected networks as the principal eigenvector of $A^\top A$, where $A$ is the adjacency matrix @kleinberg1998.
 
-[^3]: The betweennes centrality of a node is roughly defined by the number of shortest paths going through it. Formally, $\text{betweennes}(v) = \sum_{i\ne j, i\ne v, j\ne v} \frac{g_{ivj}}{g_{ij}}$,where $g_{ij}$ is the number of shortest paths between $i$ and $j$ and $g_{i, v, j}$ is the number of those shortest path which pass through node $v$ [@brandes2001].
+[^3]: The betweenness centrality of a node is roughly defined by the number of shortest paths going through it. Formally, $\text{betweennes}(v) = \sum_{i\ne j, i\ne v, j\ne v} \frac{g_{ivj}}{g_{ij}}$, where $g_{ij}$ is the number of shortest paths between $i$ and $j$ and $g_{i, v, j}$ is the number of those shortest paths which pass through node $v$ [@brandes2001].
 
 [^4]: The closeness centrality of a node is the inverse of the sum of distances to all other nodes in the graph. Formally, $\text{closeness}(v) = \frac{1}{\sum_{i\ne v}d_{vi}}$. Alternatively, the harmonic centrality is more robust in the context of disconnected graphs [@freeman1978].
 
 [^5]: The degree centrality of a node is simply the number of edges it has [@hansen2011].
 
-In contrast, other frequent metrics describe the entire graph. For example, the modularity[^6] of a graph and a given partition describes how separated are the different node clusters. Usually, that partition is computed so it maximizes the modularity greedy optimization algorithm [@clauset2004].
+In contrast, other frequent metrics describe the entire graph. For example, the modularity[^6] of a graph and a given partition describes how separated are the different node clusters. Usually, that partition is computed to maximize the modularity greedy optimization algorithm [@clauset2004].
 
 [^6]: Formally, $Q = \frac{1}{2m}\sum_{ij}\left( A_{ij} - \gamma \frac{k_ik_j}{2m}\right )\mathbb1_{c_i = c_j}$, where $m$ is the number of edges, $A$ is the adjency matrix, $k_x$ is the degree of the $x$ node and $c_x$ the cluster of the $x$ node
 
 ## Compositional data
 
-Microbial abundance data is clearly not normal, as abundance are discrete counts. Therefore, we need some kind of transformation. Let's consider the raw microbial abundance data , $W \in \mathbb N_0^{n\times p}$, where $W_i^{(j)}$ corresponds to the number of reads assigned to the $i$-taxa in the $j$-sample.
+Microbial abundance data is not normal, as abundances are discrete counts. Therefore, we need some transformation. Let us consider the raw microbial abundance data, $W \in \mathbb N_0^{n\times p}$, where $W_i^{(j)}$ corresponds to the number of reads assigned to the $i$-taxa in the $j$-sample.
 
-The first challenge of inferring GGM from microbial data is that it is highly compositional due to unequal depth and sampling. For this reason, microbial abundances are often normalized by the total of sum of reads per sample (@eq-relative).
+The first challenge of inferring GGM from microbial data is that it is highly compositional due to unequal depth and sampling. For this reason, microbial abundances are often normalized by the total sum of reads per sample (@eq-relative).
 
 $$
 m^{(j)} = \sum_{a=1}^p W_a^{(j)}\\
@@ -49,21 +52,21 @@ X_i^{(j)}  = \frac {W_i^{(j)}}{
 m^{(j)}}
 $$ {#eq-relative}
 
-@kurtz2015 proposed to use the centered log-ratio of relative abundances (@eq-clr). To avoid numerical problems, they use **pseudo-counts**.
+@kurtz2015 proposed to use the centered log ratio of relative abundances (@eq-clr). To avoid numerical problems, they use **pseudo-counts**.
 
 $$
 Z^{(j)} = \text{clr}(X^{(j)}) = [\frac{1+W_1^{(j)}}{\prod _{a=1}^p (1+W_a^{(j)}) ]^{1/p}}, \frac{1+W_2^{(j)}}{\prod _{a=1}^p (1+W_a^{(j)}) ]^{1/p}}, \dots]
 $$ {#eq-clr}
 
-The intuition behind this transformation is that, because $\log{\frac {X_i}{X_j}} = \log{\frac {X_i/m}{X_j/m}} = \log{\frac {W_i}{W_j}}$, the statistical inference done with the log ratios of compositions are equivalent to the one done with the log ratio of unobserved absolute abundances. However, more complex transformation that takes into account the fact that counts are zero inflated and this transformation have been criticized in the context of network inferring by @ha2020 .
+The intuition behind this transformation is that because $\log{\frac {X_i}{X_j}} = \log{\frac {X_i/m}{X_j/m}} = \log{\frac {W_i}{W_j}}$, the statistical inference done with the log ratios of compositions are equivalent to the one done with the log ratio of unobserved absolute abundances. However, a more complex transformation that takes into account the fact that counts are zero-inflated and this transformation was proposed by @ha2020 in the context of network inferring.
 
 ## Inferring sparse graph models
 
-Although it is not strictly necessary, most of research have focused on the problem of estimating sparse graphs, because can be treated as convex optimization problems and applicable in the case $p>n$. We will cover briefly the four main approaches, in the context of both frequentist and bayesian frameworks.
+Although it is not strictly necessary, most research has focused on the problem of estimating sparse graphs because it can be treated as a convex optimization problem and applicable in the case $p>n$. We will cover briefly the four main approaches in the context of both frequentist and Bayesian frameworks.
 
 ## Meinshausen and Bühlmann method
 
-@meinshausen2006 where the first in imposing a $L_1$ penalty to the estimation of the precision matrix $\Omega$ as a proxy of the underlaying graph. The Meinshausen and Bühlmann method is *node-wise* in the sense that solves the problem by finding edges node by node. They proposed that estimating the graph could be done by fitting $p$ Lasso regressions (@eq-lasso). Then, they include the edge $(i, j)$ in the graph if either $\hat \beta^{i, \lambda}_j \ne0$ or $\hat \beta^{j, \lambda}_i \ne0$. Alternatively, you can also include an edge only when both coefficients are non-zero.
+@meinshausen2006 was the first to impose a $L_1$ penalty to estimate the precision matrix $\Omega$ as a proxy of the underlying graph. The Meinshausen and Bühlmann method is *node-wise* because it solves the problem by finding edges node by node. They proposed that estimating the graph could be done by fitting $p$ Lasso regressions (@eq-lasso). Then, they include the edge $(i, j)$ in the graph if either $\hat \beta^{i, \lambda}_j \ne0$ or $\hat \beta^{j, \lambda}_i \ne0$. Alternatively, you can also include an edge only when both coefficients are non-zero.
 
 $$
 \hat \beta^{i, \lambda} = \arg \min_{\beta \in \mathbb R^{p-1}} (\frac 1 n ||Z^i-Z^{\neg i}\beta||_2 + \lambda||\beta||_1) 
@@ -71,17 +74,17 @@ $$ {#eq-lasso}
 
 ## Glasso method
 
-@friedman2008 proposed a method that infers the entire graph by minimizing a *convex* penalized maximum likelihood problem (@eq-glasso). Notice we denote the space of semi positive definite matrix as $M^+$.
+@friedman2008 proposed a method that infers the entire graph by minimizing a *convex* penalized maximum likelihood problem (@eq-glasso). Notice that we denote the space of a positive definite matrix as $M^+$.
 
 $$
 \hat \Omega = \arg \min_{\Omega \in M^+} (-\log\det(\Omega) + \text{tr}(\Omega\hat \Sigma)) + \lambda ||\Omega||_1
 $$ {#eq-glasso}
 
-Both the Meinshausen and Bühlmann and Glasso are efficient and well known methods. However, we still need to select a proper $\lambda$. Because we don't know the sparsity of the graph *a priori*, there are different model-selection methods (expanded in the next section).
+Both the Meinshausen and Bühlmann, and Glasso are efficient and well-known methods. However, we still need to select a proper $\lambda$. Because we do not know the sparsity of the graph *a priori*, there are different model selection methods (expanded in the next section).
 
 ### **Bayesian GLASSO**
 
-@wang2012 introduced a bayesian version of the GLASSO estimator of the matrix (@eq-bayes-glasso). They assigned a double exponential prior to the elements in the off diagonal and an exponential and an exponential prior to the elements in the diagonal. The value of $\lambda$ can either be the objective of some kind of model selection method or included in the model with an appropriate prior [@jongerling2023].
+@wang2012 introduced a Bayesian version of the GLASSO estimator of the matrix (@eq-bayes-glasso). They assigned a double exponential prior to the elements in the off-diagonal and an exponential prior to the elements in the diagonal. The value of $\lambda$ can either be the objective of a model selection method or included in the model with an appropriate prior [@jongerling2023].
 
 $$
 \begin{aligned}
@@ -92,25 +95,25 @@ $$ {#eq-bayes-glasso}
 
 There are several adaptations of this basic setting in the literature [@richardli2019; @li; @piironen2017]. All of them can be computed efficiently and are relatively easy to converge. It may also be easier to have an intuition about the priors of the model.
 
-However, they all have the same problem: the resulting precision matrix is not sparse. As a result, in order to infer the underlying network (which is our ultimate goal), these methods require a *post hoc* heuristic whether to include or exclude an edge. For example, @jongerling2023 set all off-diagonal elements to be exactly zero if the 95% credibility interval containst the zero value.
+However, they all have the same problem: the resulting precision matrix is not sparse. As a result, in order to infer the underlying graph (which is our ultimate goal), these methods require a *post hoc* heuristic on whether to include or exclude an edge. For example, @jongerling2023 set all off-diagonal elements to be precisely zero if the 95% credibility interval contains the zero value.
 
-In my opinion, this decision-rule makes more difficult to estimate the uncertainty of all network metrics in a transparent way. @jongerling2023 explored method to overcome the fact that applying the decision rule when estimating the posteriors a centrality metrics requires to know the whole posterior distribution *beforehand*.
+In my opinion, this decision rule makes it more challenging to estimate the uncertainty of all network metrics transparently. @jongerling2023 explored a method to overcome the fact that applying the decision rule when estimating the posteriors of centrality metrics requires knowing the whole posterior distribution *beforehand*.
 
 ## Sparse Bayesian GGM using G-Wishart priors
 
-The alternative to using an heuristic like the previous one is to use estimate the *join posterior distribution* of the precision matrix and the graph, $P(G, \Omega|Z)$, with appropriate priors (@eq-join-post).
+The alternative to using a heuristic like the previous one is to estimate the *join posterior distribution* of the precision matrix and the graph, $P(G, \Omega|Z)$, with appropriate priors (@eq-join-post).
 
 $$
 P(G, \Omega|Z) \propto P(Z|G, \Omega) P(\Omega|G)P(G)
 $$ {#eq-join-post}
 
-The likelihood of the data given the precision matrix and graph is given by [@mohammadi2015].
+The likelihood of the data given the precision matrix and the graph is given by [@eq-likelihood; @mohammadi2015].
 
 $$
 P(Z|G, \Omega) \propto |\Omega|^{n/2}\exp\left \{ -\frac 1 2 \text{tr}(\Omega Z^\top Z) \right\}
 $$ {#eq-likelihood}
 
-Many priors have been proposed for the graph structure [@mohammadi2015; @carvalho2009; @jones2005]. The one implemented in the BDgraph library consists in a Bernoulli prior on each link inclusion [@mohammadi2019]. Prior knowledge can me included by assigning meaningful probabilities to different edges. Otherwise, the prior probability depends on a $\theta \in (0, 1)$ parameter that express our prior belief in the sparsity of the graph. Notice that, if $\theta = 0.5$, the distribution corresponds to the uniform distribution over the whole graph space.
+Many priors have been proposed for the graph structure [@mohammadi2015; @carvalho2009; @jones2005]. The one implemented in the BDgraph library consists of a Bernoulli prior on each link inclusion [@mohammadi2019]. Prior knowledge can be included by assigning meaningful probabilities to different edges. Otherwise, the prior probability depends on a $\theta \in (0, 1)$ parameter that expresses our prior belief in the sparsity of the graph. Notice that if $\theta = 0.5$, the distribution corresponds to the uniform distribution over the whole graph space.
 
 $$
 P(G) \propto \left ( \frac{\theta}{1-\theta}\right) ^{|E|}
@@ -124,27 +127,27 @@ $$
 
 The graph space grows exponentially with the number of nodes/taxa. Concretely, there are $2^{p(p-1)/2}$ graphs. Then, for this method to work in practice, you must use an efficient *search* algorithm.
 
-Trans-dimensional Markov Chain Monte Carlo algorithms explores the graph space and estimate the parameters of the model simultaneously. The convergence of this algorithms, such as reversible-jump MCMC, have been proven difficult. @mohammadi2015 proposed a birth-death MCMC algorithm that seems to work better in practice.
+Trans-dimensional Markov Chain Monte Carlo algorithms explore the graph space and estimate the model parameters simultaneously. The convergence of these algorithms, such as reversible-jump MCMC, has been proven difficult. @mohammadi2015 proposed a birth-death MCMC algorithm that works better in practice.
 
-This algorithm adds and removes links according to independent birth and death Poisson processes of every edge. It is formulated in such a way that the posterior probability of a graph is proportional to how long the sampling algorithm stayed in a particular graph.
+This algorithm adds and removes links according to independent birth and death Poisson processes of every edge. It is formulated in such a way that the posterior probability of a graph is proportional to how long the sampling algorithm stayed in a particular graph. We say it is a graph search method because it explores the graph space.
 
 ## Graph selection: StARS
 
-@mohammadi2015 is a bayesian inference method that explores the graph space (graph search). In contrast, the Meinshausen and Bühlmann method and Glasso have a unique solution for any given value of $\lambda$. This means that, for a given grid of penalties $\Lambda=[\lambda_1, \dots, \lambda_s]$, we will obtain a a set of graphs $[\hat G_{\lambda_1}, \dots, \hat G_{\lambda_s}]$. Graph selection consist on choosing $\lambda$ so the correspondent graph is optimal under certain criterion.
+In contrast, the Meinshausen and Bühlmann method and Glasso have a unique solution for any given value of $\lambda$. This means that, for a given grid of penalties $\Lambda=[\lambda_1, \dots, \lambda_s]$, we will obtain a a set of graphs $[\hat G_{\lambda_1}, \dots, \hat G_{\lambda_s}]$. Graph selection involves choosing $\lambda$ so the correspondent graph is optimal under certain criteria.
 
-Different model selection procedures include $K$-cross fold validation and optimizing some parameter like the Akaike information criterion or the Bayesian information criterion (BIC). However, since the publication of the SPIEC-EASI[^7] method [@kurtz2015], nearly all research microbial co-occurrence network inference have used the StARS[^8] method [@liu].
+Different model selection procedures include $K$-cross fold validation and optimizing some parameters like the Akaike information criterion or the Bayesian information criterion (BIC). However, since the publication of the SPIEC-EASI[^7] method [@kurtz2015], nearly all research microbial co-occurrence network inferences have used the StARS[^8] method [@liu].
 
 [^7]: SPIEC-EASI stands for **SP**arse **I**nvers**E C**ovariance **E**stimation for cological **AS**sociation **I**nference
 
 [^8]: STARS stands for Stability Approach to Regularization Selection.
 
-The core idea of StARS is to draw many random *overlapping subsamples* (without replacement)*,* and solve the graphical lasso problem for each subsample with decreasing values of $\lambda$ until there is a small but *acceptable* amount of variability. @liu claimed that that StARS's goal is to over select edges.That is, that the true graph $G$ is contained in estimated graph $\hat G$.
+The core idea of StARS is to draw many random *overlapping subsamples* (without replacement)*,* and solve the graphical lasso problem for each subsample with decreasing values of $\lambda$ until there is a small but *acceptable* amount of variability. @liu claimed that StARS's goal is to select edges over. That is, the true graph $G$ is contained in the estimated graph $\hat G$.
 
 @liu define $\xi^b_{ij}$ as a measurement of the instability of a certain edge $(i, j)$ across $b$ subsamples for a given $\lambda$ value. It can interpreted as the fraction of times any pair of the $b$ graphs disagree on the presence of the $(i, j)$ edge.
 
-The StARS method selects $\lambda$ according to the total instability by averaging over all edges (@eq-total-instability). Concretely, they choose $\lambda$ according to @eq-lambda, where $\beta$ is a cut point they set to be 0.05. We can interpret it as choosing the most sparse graph such that the average total instability is equal or less than $\beta$.[^9]
+The StARS method selects $\lambda$ according to the total instability by averaging over all edges (@eq-total-instability). Concretely, they choose $\lambda$ according to @eq-lambda, where $\beta$ is a cut point they set to be 0.05. We can interpret it as choosing the most sparse graph such that the average total instability equals or less than $\beta$.[^9]
 
-[^9]: If $\lambda$ is sufficiently large, all graphs will be empty, and, therefore the instability will also be zero. If we decrease $\lambda$, graphs will eventually not be empty and the instability will start increasing. However, at some point, smaller and smaller values of $\lambda$ will start decreasing the stability. Consider, for example, the case of $\lambda=0$, where the graph will be always fully connected (at least with the Meinshausen and Bühlmann method). To avoid choosing a dense and stable graph, @liu converts $D_b(\lambda)$ into monotonic by not consider such small values of $\lambda$ (see the papers for more details)
+[^9]: If $\lambda$ is sufficiently large, all graphs will be empty, and, therefore, the instability will also be zero. If we decrease $\lambda$, graphs will eventually not be empty, and the instability will increase. However, at some point, smaller and smaller values of $\lambda$ will decrease the stability. Consider, for example, the case of $\lambda=0$, where the graph will be always fully connected (at least with the Meinshausen and Bühlmann method). To avoid choosing a dense and stable graph, @liu converts $D_b(\lambda)$ into monotonic by not consider such small values of $\lambda$ (see the papers for more details)
 
 $$
 D_b(\lambda) = \frac{\sum_{s<t}\hat{\xi^b_{ij}}}{{p \choose 2}}
@@ -153,5 +156,45 @@ $$ {#eq-total-instability}
 $$
 \lambda_t = \sup\left\{ \frac{1}{\lambda} : \bar D_b(\lambda) \leq \beta \right \}
 $$ {#eq-lambda}
+
+## Preliminary results and plans
+
+I have tried the four methods, and I think we should stick with the Meinshausen and Bühlmann method with the StARS selection method and the Sparse Bayesian GGM using G-Wishart priors. Why?
+
+1.  MB + StARS is the most used method in the literature, and StARS was explicitly designed for this method.
+2.  MB + StARS works best in practice for initial results.
+3.  MB + StARS is a model selection with likelihood-based criteria, whereas the Bayesian method is a model search method. This is a nice duality to explore.
+
+I want to answer some questions:
+
+Does the method work with normal simulated data?
+
+Preliminary results: Both method works perfectly when n is large, and MB + StARS works better when n is small. However, when n \< p, the method doesn't overselect edges (the opposite of what the authors claim).
+
+Although MB + StARS works better in practice, I'm using the simulation methods of the Huge R library, as well as the Huge MB implementation.
+
+I had problems making the Bayesian method converge, but I found this heuristic: I got better results if the prior graph edge inclusion was sparse, and I started with the fully dense graph. The burn-in iterations quickly remove the edges not in the true graph.
+
+Can we estimate confidence and credible intervals for the network metrics?
+
+It's straightforward and fast to do it for the Bayesian method. It's very slow to bootstrap the MB + StARS method. I don't know which metrics include either. I believe I should include:
+
+1.  Number of edges (easy to compute and interpret)
+2.  Hub-score (widely used)
+3.  Modularity (widely used)
+
+But I don't know how exhaustive I should be. There are problems with the metrics itself when there are disconected sub-graphs.
+
+How robust are the metrics to small changes in the graph?
+
+If we have a graph with 100 edges, and we remove one edge, how much do the metrics change? If it's not robust, the confidence intervals may not be significant. Is there a way to make them more robust?
+
+How well does the method work with count data?
+
+I have to think about how to generate data. Also, the Bayesian method can work directly with counts data, but the MB + StARS method needs to be transformed.
+
+Others:
+
+I also have some actual data to get something about (marine sponges). And I have some variables (environmental data) to include in the model. I'm using only the graphs, but because I have the precision matrix I could simulate new data and compare it with the training data.
 
 ## References
