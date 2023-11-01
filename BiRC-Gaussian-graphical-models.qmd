@@ -4,17 +4,27 @@ author: "Curro Campuzano"
 bibliography: references.bib
 ---
 
-Disclaimer: This is not a draft of the report, there's way to much unnecesary math.
-
 # Background
 
 The recent advances in microbial amplicon and metagenomic sequencing produce extensive collections of co-occurrence data suitable for quantitative analysis [@badri2020]. Although limited by nature, microbial taxa associations *in situ* can not usually be assessed by observing interactions as in macro-ecosystems [@guseva2022]. Therefore, methods to extract valuable information and their interpretation are an active and controversial research topic [@blanchet2020].
 
-Microbial networks are temporary or spatial snapshots of ecosystems, where we display taxonomic units as nodes (but also environmental variables) and significant associations as undirected edges [@röttjers2018]. This definition is ambiguous and includes different methods that seek to characterize fundamental properties and mechanisms of microbial ecosystems [@lutz2022].
+Microbial networks are temporary or spatial snapshots of ecosystems, where we display taxonomic units as nodes (but also environmental variables) and significant associations as undirected edges [@röttjers2018]. The processing pipeline determines the exact meaning of the nodes, as raw reads can be clustered into operational taxonomic units, kept separated as amplicon sequence variants, and agglomerated into higher taxonomic levels [@faust2021].
 
-We must estimate network properties to get meaningful biological insights from microbial networks [@röttjers2018; @abu-mostafa2012]. In this work, we used one of the most common microbial networks, called undirected Gaussian graphical models[^1]. Specifically, we focused on the analysis of uncertainty measurement and statistical robustness of two commonly used metrics in the field of ecological microbiology [@matchado2021; @devries2018; @zamkovaya2021; @guseva2022].
+Microbial networks are temporary or spatial snapshots of ecosystems, where we display taxonomic units as nodes (but also environmental variables) and significant associations as undirected edges [@röttjers2018]. The processing of the pipeline determines the exact meaning of the nodes, as raw reads can be clustered into operational taxonomic units, kept separated as amplicon sequence variants, and agglomerated into higher taxonomic levels [@bharti2021]. There are many inference methods in the literature built on top of pairwise correlation-based methods or graphical models [@matchado2021]. The biological meaning of networks has been qualified as "uncertain" and requires careful interpretation of all prior steps and their impact on the outcome [@faust2021].
 
-[^1]: A graphical model is a probabilistic model for which a graph expresses the conditional dependence structure between random variables.
+Microbial inference algorithms are known to return so-called hairballs (intricate and densely interconnected graphs) [@faust2021; @röttjers2018]. In order to gain biological insights from co-occurrence networks, we must estimate and analyze the network properties and relate them to the underlying microbial ecosystems [@röttjers2018; @abu-mostafa2012].
+
+For example, at the network level, we can study whether some species tend to co-occur with each other more often, quantified by the modularity[^1] or how well the degree[^2] distribution fits a null distribution such as the binomial [@guseva2022]. At the node level, on the other hand, we can analyze the relation between network distances[^3] and phylogenetic similarity [@anetwor]. It is unreasonable to assume that a highly connected node in the network indicates that taxa are a keystone species [@röttjers2018; @guseva2022]. Therefore, we advise not using centrality measurements such as the hub score[^4] to identify keystone taxa, even though they are frequently used. Other centrality measurements such as the node degree might be used to study if there are species with a broader niche preference than others.
+
+[^1]: Formally, $Q = \frac{1}{2m}\sum_{ij}\left( A_{ij} - \gamma \frac{k_ik_j}{2m}\right )\mathbb1_{c_i = c_j}$, where $m$ is the number of edges, $A$ is the adjency matrix, $k_x$ is the degree of the $x$ node and $c_x$ the cluster of the $x$ node
+
+[^2]: The degree of a node is simply the number of edges it has [@hansen2011].
+
+[^3]: The shortest between two nodes is the path with minimal number of edges.
+
+[^4]: The hub scores are defined for undirected networks as the principal eigenvector of $A^\top A$, where $A$ is the adjacency matrix @kleinberg1998.
+
+The use of undirected Gaussian graphical models in this field has become increasingly popular because they are less affected by correlated but indirectly connected taxa. Likewise, there is extensive research on considering the peculiarities of microbial abundance data. However, the issue of measuring uncertainty in microbial co-occurrence network metrics has not yet been directly tackled. This work focuses on this particular subject.
 
 ## Gaussian graphical models
 
@@ -26,19 +36,19 @@ The precision matrix is defined to be the inverse of the covariance matrix, $\Om
 
 ## Network metrics
 
-Metrics such as hub score[^2], betweenness centrality[^3], closeness centrality[^4], and degree centrality[^5] describe properties of the *nodes*. Whereas these metrics can be used to identify key taxa in interaction networks, they lack a strong conceptual justification of why they could be used to identify keystone *taxa* in co-occurrence networks. Despite this, they are still widely used for this purpose [@röttjers2018; @guseva2022].
+Metrics such as hub score[^5], betweenness centrality[^6], closeness centrality[^7], and degree centrality[^8] describe properties of the *nodes*. Whereas these metrics can be used to identify key taxa in interaction networks, they lack a strong conceptual justification of why they could be used to identify keystone *taxa* in co-occurrence networks. Despite this, they are still widely used for this purpose [@röttjers2018; @guseva2022].
 
-[^2]: The hub scores are defined for undirected networks as the principal eigenvector of $A^\top A$, where $A$ is the adjacency matrix @kleinberg1998.
+[^5]: The hub scores are defined for undirected networks as the principal eigenvector of $A^\top A$, where $A$ is the adjacency matrix @kleinberg1998.
 
-[^3]: The betweenness centrality of a node is roughly defined by the number of shortest paths going through it. Formally, $\text{betweennes}(v) = \sum_{i\ne j, i\ne v, j\ne v} \frac{g_{ivj}}{g_{ij}}$, where $g_{ij}$ is the number of shortest paths between $i$ and $j$ and $g_{i, v, j}$ is the number of those shortest paths which pass through node $v$ [@brandes2001].
+[^6]: The betweenness centrality of a node is roughly defined by the number of shortest paths going through it. Formally, $\text{betweennes}(v) = \sum_{i\ne j, i\ne v, j\ne v} \frac{g_{ivj}}{g_{ij}}$, where $g_{ij}$ is the number of shortest paths between $i$ and $j$ and $g_{i, v, j}$ is the number of those shortest paths which pass through node $v$ [@brandes2001].
 
-[^4]: The closeness centrality of a node is the inverse of the sum of distances to all other nodes in the graph. Formally, $\text{closeness}(v) = \frac{1}{\sum_{i\ne v}d_{vi}}$. Alternatively, the harmonic centrality is more robust in the context of disconnected graphs [@freeman1978].
+[^7]: The closeness centrality of a node is the inverse of the sum of distances to all other nodes in the graph. Formally, $\text{closeness}(v) = \frac{1}{\sum_{i\ne v}d_{vi}}$. Alternatively, the harmonic centrality is more robust in the context of disconnected graphs [@freeman1978].
 
-[^5]: The degree centrality of a node is simply the number of edges it has [@hansen2011].
+[^8]: The degree centrality of a node is simply the number of edges it has [@hansen2011].
 
-In contrast, other frequent metrics describe the entire graph. For example, the modularity[^6] of a graph and a given partition describes how separated are the different node clusters. Usually, that partition is computed to maximize the modularity greedy optimization algorithm [@clauset2004].
+In contrast, other frequent metrics describe the entire graph. For example, the modularity[^9] of a graph and a given partition describes how separated are the different node clusters. Usually, that partition is computed to maximize the modularity greedy optimization algorithm [@clauset2004].
 
-[^6]: Formally, $Q = \frac{1}{2m}\sum_{ij}\left( A_{ij} - \gamma \frac{k_ik_j}{2m}\right )\mathbb1_{c_i = c_j}$, where $m$ is the number of edges, $A$ is the adjency matrix, $k_x$ is the degree of the $x$ node and $c_x$ the cluster of the $x$ node
+[^9]: Formally, $Q = \frac{1}{2m}\sum_{ij}\left( A_{ij} - \gamma \frac{k_ik_j}{2m}\right )\mathbb1_{c_i = c_j}$, where $m$ is the number of edges, $A$ is the adjency matrix, $k_x$ is the degree of the $x$ node and $c_x$ the cluster of the $x$ node
 
 ## Compositional data
 
@@ -135,19 +145,19 @@ This algorithm adds and removes links according to independent birth and death P
 
 In contrast, the Meinshausen and Bühlmann method and Glasso have a unique solution for any given value of $\lambda$. This means that, for a given grid of penalties $\Lambda=[\lambda_1, \dots, \lambda_s]$, we will obtain a a set of graphs $[\hat G_{\lambda_1}, \dots, \hat G_{\lambda_s}]$. Graph selection involves choosing $\lambda$ so the correspondent graph is optimal under certain criteria.
 
-Different model selection procedures include $K$-cross fold validation and optimizing some parameters like the Akaike information criterion or the Bayesian information criterion (BIC). However, since the publication of the SPIEC-EASI[^7] method [@kurtz2015], nearly all research microbial co-occurrence network inferences have used the StARS[^8] method [@liu].
+Different model selection procedures include $K$-cross fold validation and optimizing some parameters like the Akaike information criterion or the Bayesian information criterion (BIC). However, since the publication of the SPIEC-EASI[^10] method [@kurtz2015], nearly all research microbial co-occurrence network inferences have used the StARS[^11] method [@liu].
 
-[^7]: SPIEC-EASI stands for **SP**arse **I**nvers**E C**ovariance **E**stimation for cological **AS**sociation **I**nference
+[^10]: SPIEC-EASI stands for **SP**arse **I**nvers**E C**ovariance **E**stimation for cological **AS**sociation **I**nference
 
-[^8]: STARS stands for Stability Approach to Regularization Selection.
+[^11]: STARS stands for Stability Approach to Regularization Selection.
 
 The core idea of StARS is to draw many random *overlapping subsamples* (without replacement)*,* and solve the graphical lasso problem for each subsample with decreasing values of $\lambda$ until there is a small but *acceptable* amount of variability. @liu claimed that StARS's goal is to select edges over. That is, the true graph $G$ is contained in the estimated graph $\hat G$.
 
 @liu define $\xi^b_{ij}$ as a measurement of the instability of a certain edge $(i, j)$ across $b$ subsamples for a given $\lambda$ value. It can interpreted as the fraction of times any pair of the $b$ graphs disagree on the presence of the $(i, j)$ edge.
 
-The StARS method selects $\lambda$ according to the total instability by averaging over all edges (@eq-total-instability). Concretely, they choose $\lambda$ according to @eq-lambda, where $\beta$ is a cut point they set to be 0.05. We can interpret it as choosing the most sparse graph such that the average total instability equals or less than $\beta$.[^9]
+The StARS method selects $\lambda$ according to the total instability by averaging over all edges (@eq-total-instability). Concretely, they choose $\lambda$ according to @eq-lambda, where $\beta$ is a cut point they set to be 0.05. We can interpret it as choosing the most sparse graph such that the average total instability equals or less than $\beta$.[^12]
 
-[^9]: If $\lambda$ is sufficiently large, all graphs will be empty, and, therefore, the instability will also be zero. If we decrease $\lambda$, graphs will eventually not be empty, and the instability will increase. However, at some point, smaller and smaller values of $\lambda$ will decrease the stability. Consider, for example, the case of $\lambda=0$, where the graph will be always fully connected (at least with the Meinshausen and Bühlmann method). To avoid choosing a dense and stable graph, @liu converts $D_b(\lambda)$ into monotonic by not consider such small values of $\lambda$ (see the papers for more details)
+[^12]: If $\lambda$ is sufficiently large, all graphs will be empty, and, therefore, the instability will also be zero. If we decrease $\lambda$, graphs will eventually not be empty, and the instability will increase. However, at some point, smaller and smaller values of $\lambda$ will decrease the stability. Consider, for example, the case of $\lambda=0$, where the graph will be always fully connected (at least with the Meinshausen and Bühlmann method). To avoid choosing a dense and stable graph, @liu converts $D_b(\lambda)$ into monotonic by not consider such small values of $\lambda$ (see the papers for more details)
 
 $$
 D_b(\lambda) = \frac{\sum_{s<t}\hat{\xi^b_{ij}}}{{p \choose 2}}
