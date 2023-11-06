@@ -6,149 +6,59 @@ bibliography: references.bib
 
 # Introduction
 
-The recent advances in microbial amplicon and metagenomic sequencing produce extensive collections of co-occurrence data suitable for quantitative analysis [@badri2020]. Although limited by nature, microbial taxa associations *in situ* can not usually be assessed by observing interactions as in macro-ecosystems [@guseva2022]. Therefore, methods based on co-occurence data and their interpretation are an active and controversial topic of research [@blanchet2020].
+The recent advances in microbial amplicon and metagenomic sequencing produce extensive collections of co-occurrence data suitable for quantitative analysis [@badri2020]. Although limited by nature, microbial taxa associations *in situ* can not usually be assessed by observing interactions as in macro-ecosystems [@guseva2022]. Therefore, methods based on co-occurrence data and their interpretation are an active and controversial research topic [@blanchet2020].
 
-Microbial networks are temporary or spatial snapshots of ecosystems, where we display taxonomic units as nodes (but also environmental variables) and significant associations as undirected edges [@röttjers2018]. The processing of the pipeline determines the exact meaning of the nodes, as raw reads can be clustered into operational taxonomic units, kept separated as amplicon sequence variants, and agglomerated into higher taxonomic levels [@bharti2021]. There are many inference methods in the literature built on top of pairwise correlation-based methods or graphical models [@matchado2021]. The biological meaning of networks has been qualified as "uncertain" and requires careful interpretation of all prior steps and their impact on the outcome [@faust2021].
+Microbial networks are temporary or spatial snapshots of ecosystems, where we display taxonomic units as nodes (but also environmental variables) and significant associations as undirected edges [@röttjers2018]. There are many inference methods in the literature built on top of pairwise correlation-based methods or graphical models [@matchado2021]. The sequencing bioinformatics pipeline determines the exact meaning of the nodes, as raw reads can be clustered into operational taxonomic units, kept separated as amplicon sequence variants, and agglomerated into higher taxonomic levels [@bharti2021]. The biological meaning of networks has been qualified as "uncertain" and requires careful interpretation of all prior steps and their impact on the outcome [@faust2021].
 
-Microbial inference algorithms are known to return so-called hairballs (intricate and densely interconnected graphs) [@faust2021; @röttjers2018]. In order to gain biological insights from co-occurrence networks, we must estimate and analyze the network properties and relate them to the underlying microbial ecosystems [@röttjers2018; @abu-mostafa2012].
+Microbial inference algorithms are known to return so-called hairballs (intricate and densely interconnected graphs) [@faust2021; @röttjers2018]. Some authors claimed it is necessary to estimate and analyze the network properties to gain biological insights from co-occurrence networks [@röttjers2018; @abu-mostafa2012].
 
-For example, at the network level, we can study whether some species tend to co-occur with each other more often, quantified by the modularity[^1] or how well the degree[^2] distribution fits a null distribution such as the binomial [@guseva2022]. At the node level, on the other hand, we can analyze the relation between network distances[^3] and phylogenetic similarity [@anetwor]. It is unreasonable to assume that a highly connected node in the network indicates that taxa are a keystone species [@röttjers2018; @guseva2022]. Therefore, we advise not using centrality measurements such as the hub score[^4] to identify keystone taxa, even though they are frequently used. Other centrality measurements such as the node degree might be used to study if there are species with a broader niche preference than others.
+For example, at the network level, we can study whether some species tend to co-occur with each other more often, quantified by the modularity[^1] or how well the degree[^2] distribution fits a null distribution such as the binomial [@guseva2022]. At the node level, on the other hand, we can analyze the relation between network distances[^3] and phylogenetic similarity [@anetwor]. However, it is unreasonable to assume that highly connected nodes in the network show any evidence of those taxa being keystone[^4] species [@röttjers2018; @guseva2022]. Therefore, we advise not using centrality measurements such as the hub score[^5] to identify keystone taxa, even though they are frequently used. Other centrality measurements, such as the node degree, might be used to study if there are species with a broader niche preference than others.
 
-[^1]: Formally, $Q = \frac{1}{2m}\sum_{ij}\left( A_{ij} - \gamma \frac{k_ik_j}{2m}\right )\mathbb1_{c_i = c_j}$, where $m$ is the number of edges, $A$ is the adjency matrix, $k_x$ is the degree of the $x$ node and $c_x$ the cluster of the $x$ node
+[^1]: Formally, $Q = \frac{1}{2m}\sum_{ij}\left( A_{ij} - \gamma \frac{k_ik_j}{2m}\right )\mathbb1_{c_i = c_j}$, where $m$ is the number of edges, $A$ is the adjency matrix, $k_x$ is the degree of the $x$ node and $c_x$ the cluster of the $x$ node [@clauset2004].
 
 [^2]: The degree of a node is simply the number of edges it has [@hansen2011].
 
-[^3]: The shortest between two nodes is the path with minimal number of edges.
+[^3]: The shortest between two nodes is the path with the minimal number of edges.
 
-[^4]: The hub scores are defined for undirected networks as the principal eigenvector of $A^\top A$, where $A$ is the adjacency matrix @kleinberg1998.
+[^4]: "A species whose impact on its community or ecosystem is large, and disproportionately large relative to its abundance" [@power1996].
 
-The use of undirected Gaussian graphical models in this field has become increasingly popular because they are less affected by correlated but indirectly connected taxa. Likewise, there is extensive research on considering the particular challenges of microbial abundance data. However, the issue of measuring uncertainty in microbial co-occurrence network metrics has not yet been directly tackled. This work focuses on this particular subject.
+[^5]: The hub scores are defined for undirected networks as the principal eigenvector of $A^\top A$, where $A$ is the adjacency matrix @kleinberg1998.
+
+The use of undirected Gaussian graphical models in this field has become increasingly popular because they are less affected by correlated but indirectly connected taxa. Likewise, there is extensive research on considering the particular challenges of microbial abundance data. However, the issue of measuring uncertainty in microbial co-occurrence network metrics has yet to be directly tackled. This work focuses on this particular subject.
 
 # Background
+
+![**Inferring a microbial network involves transforming the data and determining the graph structure from a sparse precision matrix estimate.** \newline (a) Abundances of five different taxa across 200 samples, simulated according to a Poisson process with unequal depth. (b) Centered log-ratio abundances to address compositionality and the assumption of normality. (c) and (d) corresponds to the graphical lasso estimation for $\lambda = 0.26$. (c) is the undirected graph determined from the zero-pattern of the precision matrix in (d). False positive edges are shown in light red, and false negatives in grey.](figures/02-conceptual_figure.pdf){#fig-conceptual}
 
 ## Gaussian graphical models
 
 We adapted the definition of Gaussian graphical models from @uhler. Let $G = (V, E)$ be an undirected graph with nodes $V=\{1, \dots, p\}$ and edges $E \subset \{(i, j) \in V\times V : i<j\}$. In our application context, $V$ is the set of microbial taxa. We define the edges of the graph such that the absence of edge $(i, j)$ implies conditional independence between the taxon $i$ and $j$ given all the other variables.
 
-It is possible to infer the graph by first estimating the inverse of the covariance matrix, known as the precision matrix, $\Omega := \Sigma^{-1}$. The precision matrix is useful because for every element of the matrix is true that $\Omega_{ij}=0$ if and only if the $i$ and $j$ and conditionally independence given the rest of the dimensions. Then, we can unambiguously determine the graph structure from the pattern of zero entries in the precision matrix. Formally, we say that a random variable $X \in \mathbb R^p$ follows $G = (V, E)$ if it is distributed as $\mathcal N_p(0, \Omega ^{-1})$, where $\Omega$ is a positive definite matrix of dimensions $p\times p$ such that $\Omega_{ij} = 0$ implies $(i, j) \notin E$.
+It is possible to infer the graph by first estimating the inverse of the covariance matrix, known as the precision matrix, $\Omega := \Sigma^{-1}$. The precision matrix is useful because, for every matrix element, it is true that $\Omega_{ij}=0$ if and only if the $i$ and $j$ are conditionally independent given the rest of the dimensions. Then, we can unambiguously determine the graph structure from the pattern of zero entries in the precision matrix (@fig-conceptual c and @fig-conceptual d). Formally, we say that a random variable $X \in \mathbb R^p$ follows $G = (V, E)$ if it is distributed as $\mathcal N_p(0, \Omega ^{-1})$, where $\Omega$ is a positive definite matrix of dimensions $p\times p$ such that $\Omega_{ij} = 0$ implies $(i, j) \notin E$.
 
-Almost always, inferring microbial networks is done under the $p\gg n$ regimen [@kurtz2015]. This is specially true for environmental samples, precisely where inference from co-occurance data is more valuable. Research in inferring microbial networks using graphical models has focused exclusively in estimating sparse Gaussian graphical model. The most popular idea is to induce sparsity by imposing a $L_1$ penalty to the precision matrix. This approach has been very successful in the likelihood framework under the name of graphical lasso [@friedman2008].
+Almost always, inferring microbial networks is done under the $p\gg n$ regimen [@kurtz2015]. This is especially true for environmental samples, where inference from co-occurrence data is more valuable. Research inferring microbial networks using graphical models has focused exclusively on estimating sparse Gaussian graphical models. The most popular idea is to induce sparsity by imposing a $L_1$ penalty on the precision matrix. This approach has succeeded in the likelihood framework under the name of graphical lasso [@friedman2008].
 
 ## Data transformation
 
-Unfortunately, microbial abundance data is not normal. In the literature, methods overcome this issue by applying some-kind of transformation over the original discrete counts. Alternatively, methods that simultaneously estimate the precision matrix and a set of $p$ normal latent variables from the $p$ observed variables are known as Copula Gaussian graphical models.
+Unfortunately, microbial abundance data is not normal (@fig-conceptual a). In the literature, methods overcome this issue by applying some transformation over the original discrete counts. Alternatively, methods that simultaneously estimate the precision matrix and a set of $p$ normal latent variables from the $p$ observed variables are known as Copula Gaussian graphical models.
 
-Even worse, microbial abundance data is highly compositional because of unequal depth and sampling. To compare abundances between samples, the observed counts, $\hat W\in \mathbb N_{n \times p}$ , are often normalized by the total sum of counts per sample [@eq-relative].
+Even worse, microbial abundance data is highly compositional because of unequal depth and sampling. To compare abundances between samples, the observed counts, $\hat W\in \mathbb N_{n \times p}$, are often normalized by the total sum of counts per sample [@eq-relative].
 
 $$
 X_{ij} = \frac{\hat W_{ij}}{\sum_{m=1}^n \hat W_{im}}
 $$ {#eq-relative}
 
-However, this normalization imposes a sum-to-one constraint, making the relative abundances, $X \in \mathbb R^+_{n\times p}$ , of the different taxa no longer independent. @kurtz2015 proposed to apply the centered log ratio transformation [@eq-clr] to the relative abundances, and estimate the Gaussian graphical model from the transformed data $X \in \mathbb R_{n\times p}$.
+However, this normalization imposes a sum-to-one constraint, making the relative abundances, $X \in \mathbb R^+_{n\times p}$, of the different taxa no longer independent. @kurtz2015 proposed to apply the centered log-ratio transformation @eq-clr to the relative abundances and estimate the Gaussian graphical model from the transformed data $X \in \mathbb R_{n\times p}$ (@fig-conceptual c).
 
 $$
 Z_{ij} = \log \left (\frac{X_{ij}}{\left [ \prod_{m=1}^pX_{im}\right]^{\frac 1 p}}\right )
-$$
+$$ {#eq-clr}
 
-Let us denote the per-sample total counts sum as $m_i = \sum_{m=1}^p W_{i,m}$. The intuition behind the centered log ratio transformation is that because $\log{\frac {W_{i*}}{W_{j*}}} = \log{\frac {W_{i*}/m_*}{W_{j*}/m_*}} = \log{\frac {X_{i*}}{X_{j*}}}$, the statistical inference done with the log ratios of relative abundances are equivalent to the one done with the log ratio of unobserved absolute abundances.
+Let us denote the per-sample total counts sum as $m_i = \sum_{m=1}^p W_{i,m}$. The intuition behind the centered log-ratio transformation is that because $\log{\frac {W_{i*}}{W_{j*}}} = \log{\frac {W_{i*}/m_*}{W_{j*}/m_*}} = \log{\frac {X_{i*}}{X_{j*}}}$, the statistical inference done with the log ratios of relative abundances are equivalent to the one done with the log ratio of unobserved absolute abundances.
 
-SPIEC-EASI[^5], the most popular tool for inferring Gaussian graphical models from microbial abundance data, uses the centered-log ratio approach [@kurtz2015]. However, this transformation is not unique and it is not exempt from criticism. Because of numerical problems with the geometric mean of the samples in @eq-clr, SPIEC-EASI uses pseudo-counts instead of the original values. When data is zero-inflated, which is often the case, the transformed data will exhibit a peak corresponding to the spike at zero, which violates the normality assumption and might lead to spurious associations [@ha2020]. @jiang2020 proposed an alternative normalization approach which takes into account a generative model for microbial abundance data.
+SPIEC-EASI[^6], the most popular tool for inferring Gaussian graphical models from microbial abundance data, uses the centered-log ratio approach [@kurtz2015]. However, this transformation is not unique, and it is not exempt from criticism. Because of numerical problems with the geometric mean of the samples in @eq-clr, SPIEC-EASI uses pseudo-counts instead of the original values. When data is zero-inflated, which is often the case, the transformed data will exhibit a peak corresponding to the spike at zero, which violates the normality assumption and might lead to spurious associations [@ha2020]. @jiang2020 proposed an alternative normalization approach considering a generative model for microbial abundance data.
 
-[^5]: SPIEC-EASI stands for **SP**arse **I**nvers**E C**ovariance **E**stimation for cological **AS**sociation **I**nference
-
-```{r}
-#| eval: false
-#| echo: false
-library(MASS)
-library(compositions)
-library(tidyverse)
-library(huge)
-p <- 4
-n <- 1000
-set.seed(1010)
-sparse_matrix <- rep(0, p*p) |> matrix(nrow = p, ncol = p)
-diag(sparse_matrix) <- 1
-sparse_matrix[1, 2] <- 0.5
-# Every positive-definite matrix has a Cholesky decomposition that takes the form LL'
-sigma <- sparse_matrix %*% t(sparse_matrix)
-diag(sigma) <- 1
-omega <- solve(sigma)
-latent_data <- mvrnorm(n, rep(0, p), sigma)
-empirical_sigma <- var(latent_data)
-empirical_omehga <- solve(empirical_sigma)
-stopifnot(sum(empirical_omehga-omega) < 0.1)
-# Now, we can transform latent variables into exponential
-# Another idea would be to move the distribution ?
-
-# An Elegant Method for Generating Multivariate Poisson Data
-# https://www.researchgate.net/publication/2216229_An_Elegant_Method_for_Generating_Multivariate_Poisson_Data
-sim_poisson_from_nmv <- function(data, lambda){
-  data |> pnorm() |>  qpois(lambda = lambda)
-}
-
-n_cor <- cor(latent_data)
-p_cor <- sim_poisson_from_nmv(latent_data, lambda = 2) |>
-  cor()
-
-data <- sim_poisson_from_nmv(latent_data, lambda = 5) |>
-  as.data.frame()
-colnames(data) <- c("A", "B", "C", "D")
-
-
-data |>
-  mutate(sample = row_number()) |>
-  pivot_longer(-sample, names_to = "Taxon", values_to = "Abundance") |>
-  ggplot(aes(x = Abundance, fill = Taxon))+
-  geom_histogram(binwidth = 1)+
-  theme_classic()
-
-data <- clr(data) |> as.data.frame()
-colnames(data) <- c("A", "B", "C", "D")
-
-
-data |>
-  mutate(sample = row_number()) |>
-  pivot_longer(-sample, names_to = "Taxon", values_to = "Abundance") |>
-  ggplot(aes(x = Abundance, colour = Taxon))+
-  geom_density()+
-  theme_classic()
-
-data |>
-  ggplot(aes(x = A, y = B))+
-  geom_density_2d()
-
-
-t(data / rowSums(data)) |>
-  clr() |>
-  t() |>  as.data.frame() |>
-  mutate(sample = row_number()) |>
-  pivot_longer(-sample, names_to = "Taxon", values_to = "Abundance") |>
-  ggplot(aes(x = Abundance, colour = Taxon))+
-  geom_density()+
-  theme_classic()
-
-t(data / rowSums(data)) |>
-  clr() |>
-  t() |>
-  as.data.frame() |>
-  ggplot(aes(x = C, y = D))+
-  geom_point()+
-  theme_classic()
-
-clr(data) |>
-  as.data.frame() |>
-  mutate(sample = row_number()) |>
-  pivot_longer(-sample, names_to = "Taxon", values_to = "Abundance") |>
-  ggplot(aes(x = Abundance, colour = Taxon))+
-  geom_density()+
-  theme_classic()
-
-trans_data <- clr(data)
-
-x <- laten_data |> as.matrix() |> huge(lambda = c(0, 0.15))
-
-x$path
-```
+[^6]: SPIEC-EASI stands for **SP**arse **I**nvers**E C**ovariance **E**stimation for cological **AS**sociation **I**nference
 
 ## Inferring sparse graph
 
@@ -163,31 +73,31 @@ $$
 \end{aligned}
 $$ {#eq-glasso}
 
-where $M^+$ is the set of positive definite matrix, $\hat \Sigma$ is the empirical covariance matrix and $||\Omega||_1$ is the $L_1$ norm (the sum of all absolute values of the matrix). $\mathcal L(\Omega)$ is the log-likelihood of the data after maximizing over the mean vector $\mu$ and ignoring constants. $\lambda$ is a positive regularization parameter that controls the sparsity of the estimated precision matrix, $\hat \Omega(\lambda)$ and, consequently, of the graph $G(\lambda)$
+where $M^+$ is the set of positive definite matrices, $\hat \Sigma$ is the empirical covariance matrix, and $||\Omega||_1$ is the $L_1$ norm (the sum of all absolute values of the matrix). $\mathcal L(\Omega)$ is the log-likelihood of the data after maximizing over the mean vector $\mu$ and ignoring constants. $\lambda$ is a positive regularization parameter that controls the sparsity of the estimated precision matrix, $\hat \Omega(\lambda)$ and, consequently, of the graph $G(\lambda)$
 
-Almost always, the sparsity of true graph, thus, of the true unknown precision matrix, is unknown. The challenge that likelihood methods to infer microbial Gaussian graphical models face is how to select an appropriate value of $\lambda$. Different criteria might be used, such as selecting $\lambda$ so it optimizes Akaike information criterion, the Bayesian information criterion or the largest within one standard error of the negative likelihood when doing cross-fold validation (or any equivalent rule of thumb). However, since the publication of the SPIEC-EASI method [@kurtz2015], nearly all research microbial co-occurrence network inferences have used the StARS[^6] method [@liu].
+Almost always, the sparsity of the true graph, thus, of the true unknown precision matrix, is unknown. The challenge that likelihood methods to infer microbial Gaussian graphical models face is selecting an appropriate value of $\lambda$. Different criteria might be used, such as selecting $\lambda$ so it optimizes the Akaike information criterion, the Bayesian information criterion, or the largest within one standard error of the negative likelihood when doing cross-fold validation (or any equivalent rule of thumb). However, since the publication of the SPIEC-EASI method [@kurtz2015], nearly all research microbial co-occurrence network inferences have used the StARS[^7] method [@liu].
 
-[^6]: STARS stands for Stability Approach to Regularization Selection.
+[^7]: STARS stands for Stability Approach to Regularization Selection.
 
-In principle, the StARS method is a general procedure that could be applied to any graph inference method. However, @liu built it on top of the @meinshausen2006 method and, despite its simplicity, in our preliminary results, gave better results than its alternatives in terms of speed, sensitivity and accuracy. @meinshausen2006 were the first to propose imposing a $L_1$ penalty and it is in fact previous to the more general formulation of @friedman2008 in @eq-glasso. They proposed to estimate the patterns of zero elements in the precision matrix by fitting $p$ lasso regressions, and using in each a different variable as response variable. Let us denote as $\hat\beta_a^b$ the $a$-coefficient of the lasso regression with the $b$ variable as response for a given value of $\lambda$. Then, they constrained the estimated graph by excluding all the edges $(i, j)$ where either $\hat\beta_i^j = 0$ or $\hat\beta_j^i = 0$.
+In principle, the StARS method is a general procedure that could be applied to any graph inference method. However, @liu built it on top of the @meinshausen2006 method, and despite its simplicity, in our preliminary results, it gave better results than its alternatives in terms of speed, sensitivity, and accuracy. @meinshausen2006 were the first to propose imposing a $L_1$ penalty, and it is, in fact, previous to the more general formulation of @friedman2008 in @eq-glasso. They proposed to estimate only the patterns of zero elements in the precision matrix by fitting $p$ lasso regressions and using each different variable as the response variable. Let us denote as $\hat\beta_a^b$ the $a$-coefficient of the lasso regression with the $b$ variable as the response for a given value of $\lambda$. Then, they constrained the estimated graph by excluding all the edges $(i, j)$ where either $\hat\beta_i^j = 0$ or $\hat\beta_j^i = 0$.
 
-The core idea of StARS is to draw many random overlapping subsamples (without replacement), and apply the Meinshausen and Bühlmann method for each subsample with decreasing values of $\lambda$ until there is a small but acceptable amount of variability. They defined the variability in terms of the average total instability of the edges. Specifically, for any chosen $\lambda$, they estimate $m$ graphs, one from each $m$ subsample. They calculate the instability of a certain edge $(i, j)$ as the fraction of every possible pair of those $m$ graph that disagree in the presence or absence of the $(i, j)$ edge [@liu].
+The core idea of StARS is to draw many random overlapping subsamples (without replacement) and apply the Meinshausen and Bühlmann method for each subsample with decreasing values of $\lambda$ until there is a small but acceptable amount of variability. They defined the variability in terms of the average total instability of the edges. Specifically, for any chosen $\lambda$, they estimate $m$ graphs, one from each $m$ subsample. They calculate the instability of a particular edge $(i, j)$ as the fraction of every possible pair of those $m$ graph that disagree in the presence or absence of the $(i, j)$ edge [@liu].
 
-Informally, @liu claimed that they could estimate a graph containing the true graph with high probability by selecting the largest value of $\lambda$ (the most sparse graph) for which the average total instability equals or less than $\beta$. They claimed that this cut-point $\beta$ is an interpretable quantity (so they did not just replace to problem of choosing $\lambda$ to choose $\beta$) and that a reasonable default value is $\beta = 0.05$. In practice, the fraction of sub-samples in which a certain edge was present for the selected $\lambda$ is used as a confidence score, and researchers prune the edges from the estimated graph that present only below a certain cut-point, such as $\alpha=0.5$.
+Informally, @liu claimed they could estimate a graph containing the true graph with high probability by selecting the largest value of $\lambda$ (the most sparse graph) for which the average total instability equals or less than $\beta$. They claimed that this cut-point $\beta$ is an interpretable quantity (so they did not just replace the problem of choosing $\lambda$ to choose $\beta$) and that a reasonable default value is $\beta = 0.05$. In practice, the fraction of sub-samples in which a certain edge was present for the selected $\lambda$ is used as a confidence score, and researchers prune the edges from the estimated graph that present only below a certain cut-point, such as $\alpha=0.5$.
 
 ### Bayesian framework
 
-@wang2012 were the first to introduce a Bayesian version of the graphical lasso estimator (@eq-glasso). Although there are many alternatives, the main idea is to encode every value into an appropriate hierarchical model and use Markov Chain Monte Carlo (MCMC) to estimate the posterior distributions [@richardli2019; @li; @piironen2017]. Bayesian methods do not need to select a value for $\lambda$. Instead, $\lambda$ can be included in the model, with a prior that expresses the researcher beliefs about the sparsity of the graph and all inference is done by marginalizing across its value [@jongerling2023].
+@wang2012 were the first to introduce a Bayesian version of the graphical lasso estimator [@eq-glasso]. Although there are many alternatives, the main idea is to encode every value into an appropriate hierarchical model and use Markov Chain Monte Carlo (MCMC) to estimate the posterior distributions [@richardli2019; @li; @piironen2017]. Bayesian methods do not need to select a value for $\lambda$. Instead, $\lambda$ can be included in the model, with a prior that expresses the researcher's beliefs about the sparsity of the graph, and all inference is done by marginalizing across its value [@jongerling2023].
 
-Bayesian graphical lasso models are very attractive to estimate the precision matrix. However, all suffer from the same problem: because priors place no probability in any value being exactly zero, $\Omega_{ij}=0$, there's no probability of the event $\Omega_{ij}=0$ in the posterior either. Our goal when inferring microbial networks is to estimate the graph, not the precision matrix. In order to infer the sparse graph these methods require a *post hoc* heuristic on whether to include or exclude an edge. For example, set all off-diagonal elements to be precisely zero if the 95% credibility interval contains the zero value [@jongerling2023]. This makes it very difficult to compute the posterior distribution of graph metrics, since we cannot just sample from the posterior distribution of the precision matrix because it would require knowing the whole posterior distribution beforehand.
+Bayesian graphical lasso models are very attractive for estimating the precision matrix. However, all suffer from the same problem: because priors place no probability in any value being exactly zero, $\Omega_{ij}=0$, there is no probability of the event $\Omega_{ij}=0$ in the posterior either. Our goal when inferring microbial networks is to estimate the graph, not the precision matrix. In order to infer the sparse graph, these methods require a *post hoc* heuristic on whether to include or exclude an edge. For example, set all off-diagonal elements to zero if the 95% credibility interval contains the zero value [@jongerling2023]. This makes it very difficult to compute the posterior distribution of graph metrics since we cannot just sample from the posterior distribution of the precision matrix. It would require knowing the whole posterior distribution beforehand.
 
-The alternative is to use a family of priors called G-Wishart that is a discrete and continuous mixture prior distribution. If so, we estimate the join posterior distribution of the precision matrix and the graph (@eq-join-post).
+The alternative is to use a family of priors called G-Wishart, a discrete and continuous mixture prior distribution. If so, we estimate the joint posterior distribution of the precision matrix and the graph (@eq-join-post).
 
 $$
 P(G, \Omega|Z) \propto P(Z|G, \Omega) P(\Omega|G)P(G)
 $$ {#eq-join-post}
 
-Many priors have been proposed for the graph structure [@mohammadi2015; @carvalho2009; @jones2005]. One popular choice is to assign a Bernoulli prior on each link inclusion [@mohammadi2019]. Prior knowledge can be included by assigning meaningful probabilities to different edges. Otherwise, the prior probability depends on a $\theta \in (0, 1)$ parameter that expresses our prior belief in the sparsity of the graph. Notice that if $\theta = 0.5$, the distribution corresponds to the uniform distribution over the whole graph space.
+Many priors have been proposed for the graph structure [@mohammadi2015; @carvalho2009; @jones2005]. One popular choice is to assign a Bernoulli prior to each link inclusion [@mohammadi2019]. Prior knowledge can be included by assigning meaningful probabilities to different edges. Otherwise, the prior probability depends on a $\theta \in (0, 1)$ parameter that expresses our prior belief in the sparsity of the graph. Notice that if $\theta = 0.5$, the distribution corresponds to the uniform distribution over the whole graph space.
 
 $$
 P(G) \propto \left ( \frac{\theta}{1-\theta}\right) ^{|E|}
@@ -197,8 +107,10 @@ $$
 P(\Omega|G) \propto |\Omega|^{(b-2)/2} \exp\left \{ -\frac 1 2 \text{tr}(D\Omega)  \right\} \mathbb 1_{\Omega\in M ^+}
 $$
 
-We need a special type of algorithms, so called Trans-dimensional MCMC to explore the graph space and estimate the model parameters simultaneously. The issue with with this approach is that the graph space grows exponentially[^7] with the number of nodes/taxa and convergence is difficult. @mohammadi2015 proposed a birth-death MCMC that seems to work in practice. Every edge is added or removed according to an independent birth and death Poisson process. The main idea is that the algorithm is formulated such that the posterior distribution of a graph is proportional to how long the sampling algorithm stayed in a particular graph. In opposition with the frequentist approach we presented in the previous section, this method does perform graph selection, but graph search.
+We need a particular type of algorithm, the so-called Trans-dimensional MCMC, to explore the graph space and estimate the model parameters simultaneously. The issue with this approach is that the graph space grows exponentially[^8] with the number of nodes/taxa, and convergence is complex. @ mohammadi2015 proposed a birth-death MCMC that works in practice. Every edge is added or removed according to an independent birth and death Poisson process. The main idea is that the algorithm is formulated such that the posterior distribution of a graph is proportional to how long the sampling algorithm stayed in a particular graph. In opposition to the frequentist approach we presented in the previous section, this method does perform graph selection but graph search.
 
-[^7]: Concretely, there are $2^{p(p-1)/2}$ graphs.
+[^8]: Concretely, there are $2^{p(p-1)/2}$ graphs.
+
+\clearpage
 
 ## References
