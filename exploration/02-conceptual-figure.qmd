@@ -1,0 +1,311 @@
+---
+title: "Conceptual figure"
+format: html
+bibliography: references.bib
+---
+
+## Background
+
+First, we are going to simulate data according to a multivariate normal distribution
+
+$$
+Z \sim \mathcal N(0, \Omega ^{-1})
+$$
+
+```{r}
+library(conflicted)
+library(tidyverse)
+library(huge)
+library(ggraph)
+library(igraph)
+library(tidygraph)
+library(compositions)
+conflicted::conflicts_prefer(tidygraph::filter)
+conflicted::conflicts_prefer(stats::cor)
+```
+
+```{r}
+set.seed(103)
+laten_data <- huge.generator(n = 200, d = 5, graph = "random", prob = 0.3)
+```
+
+```{r}
+graph <- laten_data$theta |>
+  graph_from_adjacency_matrix(mode = "undirected") |>
+  as_tbl_graph() |>
+  mutate(
+    centrality_degree = centrality_degree(),
+    taxa = c("A", "B", "C", "D", "E") 
+  )
+ggraph(graph, layout = 'kk') + 
+  geom_edge_fan() + 
+  geom_node_point() + 
+  geom_node_label(aes(label = taxa))+
+  theme_graph(fg_text_colour = 'white')
+```
+
+```{r}
+as.data.frame(laten_data$data) |>
+  setNames(c("A", "B", "C", "D", "E")) |>
+  mutate(sample = row_number()) |>
+  pivot_longer(-sample, values_to = "Abundance", names_to = "Taxa") |>
+  ggplot(aes(x = Abundance, colour = Taxa))+
+  geom_density()+
+  theme_classic()
+```
+
+```{r}
+as.data.frame(laten_data$data) |>
+  setNames(c("A", "B", "C", "D", "E")) |>
+  pivot_longer(-A, values_to = "Abundance", names_to = "Taxa") |>
+  ggplot(aes(x = A, y = Abundance))+
+  geom_density_2d()+
+  theme_classic()+
+  facet_wrap(~Taxa)
+```
+
+```{r}
+as.data.frame(laten_data$data) |>
+  setNames(c("A", "B", "C", "D", "E")) |>
+  ggplot(aes(x = A, y = E))+
+  geom_density_2d()+
+  theme_classic()
+
+```
+
+However, microbial count data are discrete counts generated according to a Poisson process. We use the method of @yahav2007.
+
+```{r}
+lambdas <- rep(10, 5)
+
+depth <- runif(n = 200, min = 0.8, max = 1.20)
+
+counts <- matrix(laten_data$data * depth, nrow = 200, ncol = 5) |> 
+  pnorm() |>
+  as.data.frame() |>
+  setNames(c("A", "B", "C", "D", "E")) |>
+  map2(lambdas, \(x, y) qpois(x, y)) |>
+  bind_cols()
+counts
+```
+
+```{r}
+colours <- c("#5ecee9","#e4bf97","#98c2ec","#bbd7a5","#ccb5e9", "#8cdbcf", "#ebacbe")
+
+counts |>
+  pivot_longer(everything(), names_to = "Taxa", values_to = "Abundance") |>
+  ggplot(aes(x = Abundance, fill = Taxa), colour = "black")+
+  scale_fill_manual(values = colours)+
+  geom_histogram(binwidth = 1)+
+  theme_classic() +
+  xlab("Microbial abundances")+
+  ylab("")
+
+ggsave("02-conceptual-figure/count_hist.pdf")
+```
+
+Does it really work?
+
+```{r}
+counts |> stats::cor()
+```
+
+```{r}
+laten_data$data |> cor()
+```
+
+Only approximately (but so far so good)
+
+Now, we have to transform the data using clr:
+
+```{r}
+trans_counts <- apply(counts + 1, 1, clr) |>
+  t() |>
+  as.data.frame()
+trans_counts
+```
+
+```{r}
+cor(trans_counts)
+```
+
+```{r}
+cor(counts)
+```
+
+```{r}
+trans_counts |>
+  pivot_longer(everything(), names_to = "Taxa", values_to = "Abundance") |>
+  ggplot(aes(x = Abundance, colour = Taxa))+
+  scale_colour_manual(values = colours)+
+  geom_density()+
+  theme_classic() +
+  xlab("Centered log-ratio microbial abundances")+
+  ylab("")
+
+ggsave("02-conceptual-figure/trans_count_hist.pdf")
+```
+
+It seems to!
+
+```{r}
+trans_counts |>
+  ggplot(aes(x = A, y = E))+
+  geom_density_2d(colour = colours[[6]])+
+  theme_classic() +
+  xlab("Centered log-ratio of microbe A") +
+  ylab("Centered log-ratio of microbe E")
+
+ggsave("02-conceptual-figure/contour.pdf")
+```
+
+Now, we can infer the graph using MB:
+
+```{r}
+infer_graphs <- trans_counts |>
+  as.matrix() |>
+  huge(
+    nlambda = 1000, lambda.min.ratio = 0.0001, method = "glasso", cov.output = TRUE)
+
+
+```
+
+```{r}
+lambda_index_best <- infer_graphs$path |>
+  map(\(g) g == laten_data$theta) |>
+  map(sum) |>
+  which.max()
+lambda_index_best
+```
+
+```{r}
+infer_graphs$path[[lambda_index_best]] == laten_data$theta
+```
+
+```{r}
+infer_graphs$lambda[[lambda_index_best]]
+```
+
+```{r}
+xtable(infer_graphs$icov[[lambda_index_best]])
+
+```
+
+```         
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+1 & 2 & 3 & 4 & 5 \\ 
+  \hline
+0.85 & 0.00 & 0.00 & 0.11 & 0.19 \\ 
+  0.00 & 0.84 & 0.18 & 0.09 & 0.00 \\ 
+  0.00 & 0.18 & 0.85 & -0.00 & 0.13 \\ 
+  0.11 & 0.09 & -0.00 & 0.82 & -0.00 \\ 
+  0.19 & -0.00 & 0.13 & -0.00 & 0.85 \\ 
+   \hline
+\end{tabular}
+\end{table}
+```
+
+```{r}
+infer_graphs$method
+```
+
+```{r}
+library(xtable)
+infer_graphs$icov[[lambda_index_best]] |>
+  round()
+infer_graphs$icov[[lambda_index_best]] |>
+  xtable(digits = 3) |>
+  print(include.rownames = FALSE)
+```
+
+```{r}
+solve(laten_data$omega) |>
+  round(digits = 3) |>
+  xtable() |>
+  print(include.rownames = FALSE)
+```
+
+```{r}
+laten_data$theta
+```
+
+Now, we can visualize the true graph:
+
+```{r}
+ggraph(graph, layout = 'nicely') + 
+  geom_edge_fan() + 
+  geom_node_point() +
+  scale_fill_manual(values = colours) +
+  geom_node_label(aes(label = taxa, fill = taxa))+
+  theme_graph(fg_text_colour = 'white')+
+  theme(legend.position = "none")
+```
+
+And the inferred graph:
+
+```{r}
+infer_graphs$path[[lambda_index_best]] |>
+  graph_from_adjacency_matrix()|>
+  as_tbl_graph() |>
+  mutate(
+    centrality_degree = centrality_degree(),
+    taxa = c("A", "B", "C", "D", "E") 
+  ) |>
+  ggraph(layout = 'nicely') + 
+  geom_edge_fan0() + 
+  geom_node_point() + 
+  geom_node_label(aes(label = taxa))+
+  theme_graph(foreground = 'steelblue', fg_text_colour = 'white')
+```
+
+```{r}
+inferred_graph_tbl <- infer_graphs$path[[lambda_index_best]] |>
+  graph_from_adjacency_matrix(mode = "undirected")|>
+  as_tbl_graph() |>
+  mutate(
+    centrality_degree = centrality_degree(),
+    taxa = c("A", "B", "C", "D", "E") 
+  )
+true_edges <- graph |>
+  activate(edges) |>
+  mutate(edges = paste0(from, to)) |>
+  pull(edges)
+inferred_graph_tbl <- inferred_graph_tbl |>
+  activate(edges) |>
+  mutate(
+    edge = paste0(from, to),
+    is_true = edge %in% true_edges,
+    type = if_else(is_true, "True positive", "False positive")
+  )
+
+
+graph |>
+  activate(edges) |>
+  left_join(inferred_graph_tbl, copy = TRUE) |>
+  mutate(type = if_else(is.na(type), "False negative", type)) |>
+  mutate(type = factor(type, levels = c("True positive", "False negative"))) |>
+  ggraph(layout = 'kk') + 
+  geom_edge_fan0(aes(linetype = type)) + 
+  scale_colour_manual(values = c("#3e413a","#aaaea5"))+
+  scale_fill_manual(values = colours) +
+  geom_node_label(aes(label = taxa, fill = taxa))+
+  theme_graph(fg_text_colour = 'white')+
+  theme(legend.position = "none")
+
+ggsave("02-conceptual-figure/infer_graph2.pdf")
+```
+
+```{r}
+infer_graphs$lambda[[lambda_index_best]]
+```
+
+```{r}
+infer_graphs$beta[[lambda_index_best]]
+```
+
+```{r}
+
+```
