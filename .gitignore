@@ -1,7 +1,6 @@
 /.snakemake
 /.cache
 /.singularities
-/data
 *.pdf
 /.Rprofile
 /.Rproj.user
