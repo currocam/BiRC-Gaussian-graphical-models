@@ -24,6 +24,9 @@ run <- function(
   purrr::map2(boot$strap, 1:n_boots, .progress = TRUE, function(x, i) {
     set.seed(seed + i)
     x <- x |> as.data.frame() |> as.matrix()
+    x <- compositions::clr(x + 1) |> as.matrix()
+    ## Assert samples sum to zero
+    stopifnot(all(abs(rowSums(x)) < 1e-10))
     max_lambda  <- pulsar::getMaxCov(x)
     grid_lambda <- pulsar::getLamPath(
       max = max_lambda, min = max_lambda * lambda_min_ratio,
@@ -41,7 +44,7 @@ run <- function(
     )
     fit$stars$merge[[fit$stars$opt.index]]
   }) |>
-    readr::write_rds(outfile)
+    readr::write_rds(outfile, "bz2")
 }
 run(
   n = as.integer(snakemake@params$n),

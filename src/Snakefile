@@ -9,7 +9,7 @@ rule report:
         'report/BiRC-Gaussian-graphical-models.pdf'
     container: None
     shell:
-        "{input.container} quarto render --output-dir report"
+        "{input.container} quarto render BiRC-Gaussian-graphical-models.qmd --output-dir report"
 
 rule simulate_mvn:
     output: 
@@ -52,6 +52,69 @@ rule fit_BDgraph:
     script:
         "03-mvn-fit-BDgraph.R"
 
+rule bootstrap_pulsar:
+    input:
+        "data/simulated/mvn/{graph}.Rds"
+    output: 
+        "data/interm/StARS/bootstrap/mb_{graph}_nboots{nboots}.Rds"
+    params:
+        n = 200, # number of samples
+        n_lambda = 50, # number of lambda values in the grid
+        n_reps = 20, # number of subsamples
+        lambda_min_ratio = 1e-3, # ratio of the minimum lambda value
+        log_space = True, # whether to use log space for the lambda grid
+        seed = 123 # random seed to sample data (not for the subsampling)
+    threads: 8
+    script:
+        "06-mvn-huge-bootstrap.R"
+
+rule fit_pulsar_mvzip:
+    input:
+        "data/simulated/mvzip/{graph}.Rds"
+    output: 
+        "data/interm/StARS_mvzip/mb_{graph}_n{n}.Rds"
+    params:
+        n_lambda = 50, # number of lambda values in the grid
+        n_reps = 100, # number of subsamples
+        lambda_min_ratio = 1e-3, # ratio of the minimum lambda value
+        log_space = True, # whether to use log space for the lambda grid
+        seed = 123 # random seed to sample data (not for the subsampling)
+    threads: 8
+    benchmark: "data/interm/StARS_mvzip/mb_{graph}_n{n}.time"
+    script:
+        "08-mvzip-fit-pulsar.R"
+
+rule fit_BDgraph_mvzip:
+    input:
+        "data/simulated/mvzip/{graph}.Rds"
+    output: 
+        "data/interm/BDgraph_mvzip/bdmcmc_{graph}_n{n}.Rds"
+    params:
+        iter = 30000, # number of iterations
+        seed = 123, # random seed
+        g_prior = 0.2, # prior probability of an edge
+        df_prior = 3, # prior degrees of freedom
+    threads: 8
+    benchmark: "data/interm/BDgraph_mvzip/bdmcmc_{graph}_n{n}.time"
+    script:
+        "09-mvzip-fit-BDgraph.R"
+
+rule bootstrap_pulsar_mvzip:
+    input:
+        "data/simulated/mvzip/{graph}.Rds"
+    output: 
+        "data/interm/StARS_mvzip/bootstrap/mb_{graph}_nboots{nboots}.Rds"
+    params:
+        n = 200, # number of samples
+        n_lambda = 50, # number of lambda values in the grid
+        n_reps = 20, # number of subsamples
+        lambda_min_ratio = 1e-3, # ratio of the minimum lambda value
+        log_space = True, # whether to use log space for the lambda grid
+        seed = 123 # random seed to sample data (not for the subsampling)
+    threads: 8
+    script:
+        "10-mvzip-huge-bootstrap.R"
+
 graph_structures = ["random", "hub", "cluster", "band", "scale-free"]
 n_samples_fit = [50, 100, 200, 1000]
 
@@ -64,18 +127,6 @@ rule mvn_roc_curves:
         "data/results/mvn_roc_curves/{graph}.tsv"
     script:
         "04-mvn-roc-curves.R"
-
-rule mvn_F1_scores:
-    input:
-        theta_true = "data/simulated/mvn/{graph}.Rds",
-        theta_mb = lambda wildcards: expand("data/interm/StARS/mb_{graph}_n{n}.Rds", graph = wildcards.graph, n = n_samples_fit),
-        theta_bdmcmc = lambda wildcards: expand("data/interm/BDgraph/bdmcmc_{graph}_n{n}.Rds", graph = wildcards.graph, n = n_samples_fit)
-    output: 
-        "data/results/mvn_F1_scores/{graph}.tsv"
-    params:
-        threshold = 0.5
-    script:
-        "05-mvn-F1-score.R"
 
 rule figures_mvn_roc_curve:
     input: 
@@ -107,14 +158,30 @@ rule aggregate_BDgraph_benchmarks:
         "head -n 1 {input[0]} > {output} && "
         "tail -n +2 -q {input} >> {output}"
 
+rule simulate_mvzip:
+    output: 
+        "data/simulated/mvzip/{graph}.Rds"
+    params:
+        seed = 123, # random seed
+        n = 1000, # number of samples
+        d = 100, # number of OTUs
+        lambda_ = 4
+    script:
+        "07-mvzip_huge_simulation.R"
+
 
 rule all:
     default_target:  True,
     input: 
         'report/BiRC-Gaussian-graphical-models.pdf',
         expand("data/simulated/mvn/{graph}.Rds", graph = graph_structures),
+        expand("data/simulated/mvzip/{graph}.Rds", graph = graph_structures),
         expand("data/interm/StARS/mb_{graph}_n{n}.Rds", graph =graph_structures, n = n_samples_fit),
+        expand("data/interm/StARS/bootstrap/mb_{graph}_nboots200.Rds", graph =graph_structures),
         expand("data/interm/BDgraph/bdmcmc_{graph}_n{n}.Rds", graph =graph_structures, n = n_samples_fit),
+        expand("data/interm/StARS_mvzip/mb_{graph}_n{n}.Rds", graph =graph_structures, n = n_samples_fit),
+        expand("data/interm/StARS_mvzip/bootstrap/mb_{graph}_nboots200.Rds", graph =graph_structures),
+        expand("data/interm/BDgraph_mvzip/bdmcmc_{graph}_n{n}.Rds", graph =graph_structures, n = n_samples_fit),
         expand("figures/01-mvn_roc_curves/{graph}.pdf", graph = graph_structures),
         "data/interm/StARS/mb_benchmarks.tsv",
         "data/interm/BDgraph/bdmcmc_benchmarks.tsv",
