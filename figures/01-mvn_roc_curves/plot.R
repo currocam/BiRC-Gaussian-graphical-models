@@ -4,7 +4,8 @@ dir <- "data/results/mvn_roc_curves"
 infiles <- list.files(dir, pattern = "*.tsv", full.names = TRUE)
 names(infiles) <- list.files(dir, pattern = "*.tsv") |> str_remove(".tsv")
 data <- purrr::map(infiles, readr::read_tsv, show_col_types = FALSE) |>
-  bind_rows(.id = "graph_structure")
+  bind_rows(.id = "graph_structure") |>
+  filter(n < 1000)
 
 dir <- "data/results/mvn_F1_scores/"
 infiles <- list.files(dir, pattern = "*.tsv", full.names = TRUE)
@@ -18,7 +19,8 @@ plot_roc_curve <- function(graph) {
     filter(graph_structure == graph) |>
     mutate(
       F1_score = round(F1_score, digits = 2),
-      label = str_glue("{method} with n = {n} (F1 = {F1_score})")
+      label = str_glue("{method} with n = {n} (F1 = {F1_score})") |>
+        fct_reorder2(method, n)
     ) |>
     ggplot(aes(x = fpr, y = tpr)) +
     geom_line(colour = "deeppink3", linewidth = 0.7, alpha = 0.9) +

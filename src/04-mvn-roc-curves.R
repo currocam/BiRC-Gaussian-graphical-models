@@ -22,7 +22,7 @@ roc_curve <- function(true_infile, pred_infile) {
     stop("Invalid data type")
   )
 
-  seq(0, 1, 0.01) |>
+  seq(-0.01, 1.01, 0.01) |>
     purrr::map(
       \(thres) classifying_metrics(true_theta, pred_theta, thres) # nolint
     ) |>

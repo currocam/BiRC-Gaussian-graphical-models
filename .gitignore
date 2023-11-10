@@ -2,6 +2,8 @@
 /.cache
 /.singularities
 *.pdf
+/data
+*files/
 /.Rprofile
 /.Rproj.user
 /.quarto
@@ -10,3 +12,8 @@
 /BiRC-Gaussian-graphical-models_files
 /renv
 /.quarto/
+*.html
+*.aux
+*.log
+report/figures
+*.Rhistory

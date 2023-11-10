@@ -2,6 +2,7 @@ Bootstrap: docker
 From: bioconductor/bioconductor_docker:RELEASE_3_18
 
 %post
+    apt update && apt install librsvg2-bin -y
     quarto install tinytex
     Rscript --vanilla -e 'BiocManager::install(c("igraph", "pulsar", "huge", "tidyverse", "cowplot", "future", "furrr", "BDgraph", "VGAM", "mvtnorm", "compositions"))'
 %help
