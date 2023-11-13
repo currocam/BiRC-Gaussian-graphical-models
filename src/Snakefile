@@ -49,7 +49,7 @@ rule fit_BDgraph:
     output:
         "data/interm/BDgraph/bdmcmc_{graph}_n{n}.Rds",
     params:
-        iter=3000,  # number of iterations
+        iter=30000,  # number of iterations
         seed=123,  # random seed
         g_prior=0.2,  # prior probability of an edge
         df_prior=3,  # prior degrees of freedom
@@ -101,7 +101,7 @@ rule fit_BDgraph_mvzip:
     output:
         "data/interm/BDgraph_mvzip/bdmcmc_{graph}_n{n}.Rds",
     params:
-        iter=2000,  # number of iterations
+        iter=30000,  # number of iterations
         seed=123,  # random seed
         g_prior=0.2,  # prior probability of an edge
         df_prior=3,  # prior degrees of freedom
@@ -252,20 +252,20 @@ rule all:
             graph=graph_structures,
             n=n_samples_fit,
         ),
-        # expand(
-        #     "data/interm/StARS_mvzip/mb_{graph}_n{n}.Rds",
-        #     graph=graph_structures,
-        #     n=n_samples_fit,
-        # ),
-        # expand(
-        #     "data/interm/StARS_mvzip/bootstrap/mb_{graph}_nboots200.Rds",
-        #     graph=graph_structures,
-        # ),
-        # expand(
-        #     "data/interm/BDgraph_mvzip/bdmcmc_{graph}_n{n}.Rds",
-        #     graph=graph_structures,
-        #     n=n_samples_fit,
-        # ),
+        expand(
+            "data/interm/StARS_mvzip/mb_{graph}_n{n}.Rds",
+            graph=graph_structures,
+            n=n_samples_fit,
+        ),
+        expand(
+            "data/interm/StARS_mvzip/bootstrap/mb_{graph}_nboots200.Rds",
+            graph=graph_structures,
+        ),
+        expand(
+            "data/interm/BDgraph_mvzip/bdmcmc_{graph}_n{n}.Rds",
+            graph=graph_structures,
+            n=n_samples_fit,
+        ),
         expand("figures/01-mvn_roc_curves/{graph}.pdf", graph=graph_structures),
         "data/interm/StARS/mb_benchmarks.tsv",
         "data/interm/BDgraph/bdmcmc_benchmarks.tsv",
