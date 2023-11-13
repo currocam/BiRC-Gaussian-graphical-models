@@ -37,11 +37,6 @@ graph <- laten_data$theta |>
     centrality_degree = centrality_degree(),
     taxa = c("A", "B", "C", "D", "E") 
   )
-ggraph(graph, layout = 'kk') + 
-  geom_edge_fan() + 
-  geom_node_point() + 
-  geom_node_label(aes(label = taxa))+
-  theme_graph(fg_text_colour = 'white')
 ```
 
 ```{r}
