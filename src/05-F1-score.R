@@ -7,7 +7,7 @@ library(BDgraph)
 library(huge)
 library(Rcpp)
 
-Rcpp::sourceCpp("src/05-mvn-F1-score.cpp")
+Rcpp::sourceCpp("src/05-F1-score.cpp")
 
 read_input <- function(x, threshold) {
   x <- x |> readr::read_rds()

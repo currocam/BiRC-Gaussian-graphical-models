@@ -9,7 +9,7 @@ library(Rcpp)
 
 roc_curve <- function(true_infile, pred_infile) {
   # Load data and source Rcpp functions
-  Rcpp::sourceCpp("src/04-mvn-roc-curves.cpp")
+  Rcpp::sourceCpp("src/04-roc-curves.cpp")
   true_theta <- true_infile |>
     readr::read_rds() |>
     purrr::pluck("theta") |>
