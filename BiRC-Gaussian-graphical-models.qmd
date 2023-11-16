@@ -130,16 +130,31 @@ We need a particular type of algorithm, the so-called Trans-dimensional MCMC, to
 
 Unlike the Meinshausen and Bühlmann method, bayesian approaches produce estimates of the whole posterior precision matrix. Thus, we can posterior predictive distribution (simulate new data coming from the join posterior distribution of the graph and the precision matrix) to assess whether the inference was successful.
 
-\clearpage
-
 # Results and discussion
 
-## Inference with normal multivariate data and zero-inflated Poisson
+From now on, we will work with the two methods that we have presented above: SPIEC-EASI (a combination of the StARS selection method and the Meinshausen and Bühlmann method) and a *fully* Bayesian hierarchical model with a discrete and continuous mixture prior distribution. As far as I know, this comparison it not only novel, but the particular Bayesian model has not been tested for microbial networks before.
 
-From now on, we will work with the two methods that we have presented above: SPIEC-EASI (a combination of the StARS selection method and the Meinshausen and Bühlmann method) and a *fully* Bayesian hierarchical mode with a discrete and continuous mixture prior distribution. As far as I know, this comparison it not only novel, but the particular bayesian model has not been tested for microbial networks before.
+## Inference with normal multivariate data
 
-How well can we fit data to the model depends on the number of taxa, the number of samples and the underlying graph structure. We simulated data according to four different graph structures and fitted the model with different number of samples. As stated before, different methods has been proposed to transform microbial abundance prior fitting the Gaussian graphical model. To address the impact of the centered log-ratio transformation in the inference, we simulated data coming from both a multivariate normal distribution and a multivariate zero-inflated Poisson.
+Ideally, the inferred graph should have very few spurious edges or missing edges. We can evaluate the accuracy of the methods by thinking of estimating the graph as a binary classification problem, where each edge can be either absent or present. The precision and sensitivity are affected not only by the number of samples and the number of taxonomic units, but potentially by the underlying graph structure. Therefore, we evaluated the performance of the methods with data simulated from five Gaussian graphical model, each with a different network topology (random, hub, cluster, band, scale-free).
+
+
+```{r}
+#| label: fig-fig
+#| fig-cap: "The graph structure has a large impact in the precision and sensitivity of both methods. "
+#| fig-subcap: 
+#|   - "Cluster graph structure"
+#|   - "Scale free graph structure"
+#|   - "ROC curves"
+#| layout: [[1,1],[1]]
+#| echo: false
+include_graphics("figures/03-report-roc-curves/cluster.svg")
+include_graphics("figures/03-report-roc-curves/scale-free.svg")
+include_graphics("figures/03-report-roc-curves/roc.svg")
+```
+
+The number of samples and taxonomic units affects the accuracy of the inference. We can evaluate it by
+
+How well can we fit data to the model depends on the number of taxa, the number of samples and the We simulated data according to four different graph structures and fitted the model with different number of samples. As stated before, different methods has been proposed to transform microbial abundance prior fitting the Gaussian graphical model. To address the impact of the centered log-ratio transformation in the inference, we simulated data coming from both a multivariate normal distribution and a multivariate zero-inflated Poisson.
 
 ## References
-
-## Acknowledgments {.appendix}
