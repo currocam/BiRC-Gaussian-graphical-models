@@ -1,6 +1,10 @@
 snakemake_threads := $(or $(snakemake_threads), 'all')
 all: .singularities/workflow.sif
-	snakemake all --cores $(snakemake_threads) --use-singularity -s src/Snakefile -p --rerun-incomplete
+	snakemake all --cores $(snakemake_threads) --use-singularity -s src/Snakefile -p --rerun-triggers mtime --rerun-incomplete --keep-going --keep-incomplete
+
+dry: .singularities/workflow.sif
+	snakemake all --cores $(snakemake_threads) -n --use-singularity -s src/Snakefile -p --rerun-triggers mtime --rerun-incomplete --keep-going --keep-incomplete
+
 
 touch: .singularities/workflow.sif
 	snakemake all --cores $(snakemake_threads) --use-singularity -s src/Snakefile -p --touch

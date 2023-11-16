@@ -60,6 +60,21 @@ rule fit_BDgraph:
         "03-mvn-fit-BDgraph.R"
 
 
+rule regression:
+    output:
+        expand(
+            "data/interm/regression_pulsar/mvzip-simulation-{n}.rds",
+            n=range(10, 80, 5),
+        ),
+        expand(
+            "data/interm/regression_BDgraph/mvzip-simulation-{n}.rds",
+            n=range(10, 80, 5),
+        ),
+    threads: 8
+    script:
+        "11-mvzip-regression.R"
+
+
 rule bootstrap_pulsar:
     input:
         "data/simulated/mvn/{graph}.Rds",
@@ -224,16 +239,21 @@ rule mvzip_F1_scores:
 rule figures_mvn_roc_curve:
     input:
         "figures/theme.R",
-        "figures/01-mvn_roc_curves/plot.R",
+        "figures/01-roc_curves/plot.R",
         expand(
-            "data/results/{dir}/{graph}.tsv",
+            "data/results/{model}_F1_scores/{graph}.tsv",
             graph=graph_structures,
-            dir=["mvn_roc_curves", "mvn_F1_scores"],
+            model=["mvzip", "mvn"],
         ),
     output:
-        expand("figures/01-mvn_roc_curves/{graph}.pdf", graph=graph_structures),
+        expand(
+            "figures/01-roc_curves/{graph}_{model}.pdf",
+            graph=graph_structures,
+            model=["mvn", "zip"],
+        ),
+        "figures/01-roc_curves/F1-score.pdf",
     shell:
-        "Rscript figures/01-mvn_roc_curves/plot.R"
+        "Rscript figures/01-roc_curves/plot.R"
 
 
 rule aggregate_pulsar_benchmarks:
@@ -295,37 +315,15 @@ rule all:
     default_target: True
     input:
         "report/BiRC-Gaussian-graphical-models.pdf",
-        expand("data/simulated/mvn/{graph}.Rds", graph=graph_structures),
-        expand("data/simulated/mvzip/{graph}.Rds", graph=graph_structures),
-        expand(
-            "data/interm/StARS/mb_{graph}_n{n}.Rds",
-            graph=graph_structures,
-            n=n_samples_fit,
-        ),
-        expand(
-            "data/interm/StARS/bootstrap/mb_{graph}_nboots200.Rds",
-            graph=graph_structures,
-        ),
-        expand(
-            "data/interm/BDgraph/bdmcmc_{graph}_n{n}.Rds",
-            graph=graph_structures,
-            n=n_samples_fit,
-        ),
-        expand(
-            "data/interm/StARS_mvzip/mb_{graph}_n{n}.Rds",
-            graph=graph_structures,
-            n=n_samples_fit,
-        ),
         expand(
             "data/interm/StARS_mvzip/bootstrap/mb_{graph}_nboots200.Rds",
             graph=graph_structures,
         ),
-        expand(
-            "data/interm/BDgraph_mvzip/bdmcmc_{graph}_n{n}.Rds",
-            graph=graph_structures,
-            n=n_samples_fit,
-        ),
-        expand("figures/01-mvn_roc_curves/{graph}.pdf", graph=graph_structures),
-        "data/interm/StARS/mb_benchmarks.tsv",
+        "figures/01-roc_curves/F1-score.pdf",
+        #expand("figures/01-mvn_roc_curves/{graph}.pdf", graph=graph_structures),
         "data/interm/BDgraph/bdmcmc_benchmarks.tsv",
         "figures/03-report-roc-curves/data.Rds",
+        # expand(
+        #     "data/interm/regression_pulsar/mvzip-simulation-{n}.rds",
+        #     n=range(10, 80, 5),
+        # ),
