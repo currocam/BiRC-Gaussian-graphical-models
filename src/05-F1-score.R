@@ -14,7 +14,7 @@ read_input <- function(x, threshold) {
   x <- class(x) |> switch(
     pulsar = x$stars$merge[[x$stars$opt.index]] |>
       as.matrix(),
-    bdgraph = BDgraph::plinks(x),
+    bdgraph =BDgraph::select(x, cut = threshold),
     stop("Invalid data type")
   )
   x[x <= threshold] <- 0
